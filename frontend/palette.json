@@ -1,0 +1,62 @@
+{
+  "midnight-blue": {
+    "value": "#001E3D",
+    "name": "Midnight Blue"
+  },
+  "midnight-blue-1": {
+    "value": "#002080",
+    "name": "Midnight Blue"
+  },
+  "royal-blue": {
+    "value": "#005CB9",
+    "name": "Royal Blue"
+  },
+  "medium-blue": {
+    "value": "#023AE0",
+    "name": "Medium Blue"
+  },
+  "dark-slate-blue": {
+    "value": "#024993",
+    "name": "Dark Slate Blue"
+  },
+  "black": {
+    "value": "#222222",
+    "name": "Black"
+  },
+  "medium-turquoise": {
+    "value": "#4DD2FF",
+    "name": "Medium Turquoise"
+  },
+  "turquoise": {
+    "value": "#4DFFF0",
+    "name": "Turquoise"
+  },
+  "dim-gray": {
+    "value": "#595959",
+    "name": "Dim Gray"
+  },
+  "steel-blue": {
+    "value": "#608CBA",
+    "name": "Steel Blue"
+  },
+  "dim-gray-1": {
+    "value": "#666666",
+    "name": "Dim Gray"
+  },
+  "slate-gray": {
+    "value": "#6B7280",
+    "name": "Slate Gray"
+  },
+  "lavender": {
+    "value": "#E5E7EB",
+    "name": "Lavender"
+  },
+  "lavender-1": {
+    "value": "#EBEBEB",
+    "name": "Lavender"
+  },
+  "snow": {
+    "value": "#FAFAFA",
+    "name": "Snow"
+  }
+}

@@ -1,0 +1,253 @@
+(Transcribed by TurboScribe. Go Unlimited to remove this message.)
+
+¿No es cierto? Lo mismo, y lo recibimos y lo podemos validar, listo, para nosotros internamente. Ese proceso de validación que es un proceso que nosotros hoy día como Phoenix hacemos, se vende el proceso, no sé, es un servicio. Ahora, lo que nosotros propusimos fue, por ejemplo, que por eso te preguntaba por las direcciones, lo que nosotros hacemos es tomar esa información de la dirección y, por ejemplo, ir a preguntarle a la API de Google Maps, ¿verdad?, y que vea que es una dirección válida. 
+
+Ya nos ha pasado que hay gente que pone direcciones, así como que, no sé, pasaje oscuro sin número, y todos los sistemas lo valían, pasaje oscuro sin número, no sé, Concepción, listo. Listo, pasa tú lo valía, y sí, pasaje oscuro sin número, Concepción. Pero tú tomas esa dirección, vas a la API de Google Maps y te busca coordenadas y te busca así como que en medio cerro. 
+
+Y no tiene más consultas, no tiene más validez, no, no, no. Pero una consulta acá a riesgo no hace esa validación de dirección. No. 
+
+En algunos casos pide comprobante de domicilio. Bueno, porque deberíamos ver que en el fondo la dirección debería tener validad por riesgo. Es que no la valía siempre. 
+
+Entonces, en algunos casos pide comprobante de domicilio. Entonces, ahí estaría validada, pero no es en todos los casos. Entonces, habría que entender bien ahí qué es lo que se valida ya y qué es lo que valiamos nosotros. 
+
+Porque también estábamos discutiendo eso que son los firmantes. Nosotros en una operación tenemos que saber el estado civil de la persona. Ya. 
+
+Para saber quién tiene que firmar. Claro. Entonces, hoy día hay cosas que no estamos validando, que creemos que las valía a riesgo, no sabemos si es así o no. 
+
+Hay cosas que valiamos, por ejemplo, del aval, pero no del titular. Entonces, igual está raro. Tenemos que revisar el tema de los firmantes. 
+
+Ahora, yo necesito saber en la punta los firmantes. Porque la documentación tiene que salir ahí con los firmantes que corresponden. Entonces, si me ponen mal el estado civil de alguien, me sale todo mal después.
+
+Y eso te golpea a ti. Es que tengo que devolver la operación. Y los comerciales se enojan mucho. 
+
+Sí, claro. Entonces, es que cualquier reparo, nosotros tenemos una tasa de reparo que es alta. Entonces, cualquier reparo es un retrabajo. 
+
+Y hay reparos que te saltan cuando ya cursaste la operación. Porque hay cosas que yo no valido en el curso, me salta después. Entonces, corregir algo, volver a que el cliente te salte la operación, es un reparo.
+
+Y en el caso de los fraudes, ya cursaste. Y esa tasa es alta. Como de los fraudes detectados, por ejemplo, los 30. 
+
+No, no es tanto. Igual hay. Sí, sí, es lógico. 
+
+Nosotros nos dimos cuenta. Ya, entonces, en el contexto, lo del curso, lo de la validación manual, ¿qué quiere hacer la automática? Cheque. Está perfecto.
+
+Te cuento un poquito cómo es el flujo. Nosotros tenemos, y ahí creo que me puede complementar, tenemos ahí Power Apps. Sí. 
+
+Ya, para los ejecutivos de cuenta. Donde ellos ingresan ahí el número de la operación. Ya. 
+
+Y con eso rescatan datos desde Mónaco y todos esos datos, adjuntan documentos, y todos esos datos después se llevan a Fluxu. Ya. Parte un flujo de Fluxu con eso.
+
+Y a nosotros nos llega esta actividad por Fluxu con alguna documentación adjunta. ¿De dónde salen el ID ellos? Ellos saben el ID, lo tienen en Mónaco. Ah, ya. 
+
+Sí, sí. Lo hicimos así en el fondo. Ellos cotizan previamente. 
+
+Sí, sí, sí. Y ahí les da un ID y con ese es para toda la vida y todo el flujo es el mismo. Perfecto. 
+
+Ya. Sí. Y lo hicimos así en el fondo porque nosotros no tenemos Fluxu desde la punta. 
+
+Ya. Entonces, por número de licencia. Tampoco tendría sentido si es como, y tiene el foco de BPM, de volver locos si tenía un BPM en la punta porque no debería ser para eso. 
+
+Si el BPM es cuando ya hay un proceso detrás que se... Claro, entonces se te abre mucho en muchos sitios. Claro. Entonces la solución es que la hizo el equipo de Power Apps. 
+
+Y eso inicia después el flujo. Ah, ya. Está bien. 
+
+Ya. Entonces ellos ya cotizaron, sacan el ID, van al Power Apps, generan, complementan. Cuando ya quieren ingresar. 
+
+Fluxu. Muy bien. Y ahí está toda la información que ellos, que tienen a la vista, me imagino. 
+
+Claro. Claro, son datos principales más que todo para tener como referencia. Los que estabas comentando tú. 
+
+El ID que están consultando es el correcto, nombre del cliente, root, qué sé yo. Ya. Y eso le llega a usted. 
+
+Claro. Ya. Y de ahí... Nosotros debiéramos validar con la data que viene en Fluxu, más los documentos adjuntos. 
+
+Ya yo me imagino que no van a sacar nada desde Monaco. Esos documentos adjuntos, disculpa, ¿cómo llegan? Como llegan a Fluxu. Sí. 
+
+O sea, ¿cómo los llevan ustedes con un correo adjunto? ¿Cómo los ven ustedes esos datos adjuntos? Por Fluxu. Ah, ya. Pero me imagino que les llega una notificación, llegó algo nuevo, van a Fluxu, ¿verdad? Es que Fluxu es como un correo, tiene una bandeja. 
+
+Eso quería saberlo. Lo imaginé, no se lo había preguntado, pero era como lógico que si no es por correo, ¿verdad? Deben estar con Fluxu abierto y se les abre una notificación de llegó algo nuevo y a revisar, etcétera, etcétera. Ya. 
+
+Tal cual. Ya, ahora... Entonces, en esa etapa inicial que cuando nos llega a nosotros, queremos que estas variaciones sean autónomas. Ya. 
+
+Y quieres rechazar de forma automática, no dejar pendiente, parece que no es... Te rechazo. Ya. Te rechazo. 
+
+Pueden haber casuísticas que, no sé, con el caso de la dirección, a ver si nosotros vamos a balear contra una API de Google. Sí. Sabes que es, de verdad, nosotros la revisamos, es imposible. 
+
+De hecho, nos llegó, claro, Infoget. Infoget que es una plataforma que nosotros usamos cuando ya no podemos, tenemos tres, cuatro, cinco búsquedas negativas y no podemos estar con la persona. Tenemos acceso a Infoget y nos pasan, nos pasan así como direcciones de la que te digo yo, calle oscura sin número, no sé, el dewey.
+
+Y nosotros así como dice, ¿qué hacemos con esto? No tenemos nada que hacer con esta dirección. Entonces, nosotros tomamos información, se la pasamos parcial a la API de Google Maps. Google Maps la ubica y dice, ah, parece que esto es esto y es acá. 
+
+Manda de vuelta las coordenadas, como latitud, longitud, la valida, o sea, dice esto es en la comuna de tanto en este sector. Y ahora lo último que intentamos fue mandar una fotito del pedacito donde está el punto, el pedacito acá, entonces dice, si te querés ubicar es más o menos como esta dirección, para los notificadores, la gente de red. Listo, eso es lo que hicimos. 
+
+Entonces ahí queda la dirección, por lo menos la dirección que se ingresó, que está en Infoget, validada. Me imagino que algo así. Claro, pero si nosotros hicimos algo así, lo ideal es que esté en la punta, no a nivel del back office. 
+
+No tiene mucho sentido que nosotros lo hagamos en el back office. Ahora, quizás lo que yo podría hacer ahí para facilitar ese trabajo es que todo este proceso que estoy comentando se haga como en el back y a ti te dé una luz verde y una luz roja, nomás como dirección válida, dedito para acá. Dirección no válida, dedito para abajo.
+
+Porque al final, claro, cualquiera puede ingresar, el ejecutivo en la punta puede ingresar lo que sea y el cliente le puede decir lo que sea. No tiene comprobantes, no tiene nada, le ingresó cualquier cosa. Pero por lo menos tú vas a poder validar que la dirección está en formato válido.
+
+Oye, ¿y esa API de Google Maps se contrata? Es pública. ¿Es pública? Sí. ¿Es pública? Y ahí te identifica el punto que… Es que eso ya es… Esto si va para arriba.
+
+¿Nosotros qué sacamos cuando nos cuentan que está…? No, no, no, no. Oye, ojo, la dirección no sigue. Eso lo voy a decir.
+
+Claro, ya está firmado. Ya está firmado. Claro, pero si es pública, no… Sí, mira, partamos con que vamos a variar el formato, que es lo que estamos variando hoy día.
+
+Si queremos después meter esa validación en otro lado. Ya, ese es el requerimiento y ese es el dolor. Cheque.
+
+¿Qué sería lo perfecto para ti? Que se valía en la punta. Ah, ya. Que todo se valía en la punta.
+
+Ya, pero… El formato, el nombre, vengan desde donde… Eso te facilita a ti el trabajo. Sí, porque yo no tengo que revisar nada. No lo quieres hacer tú, en el fondo.
+
+Claro, yo no tengo que revisar el nombre si sé que viene del registro civil. ¿Y no lo valía en la punta? No, no. Entonces, yo te estoy poniendo el caso simple.
+
+Sí, sí, sí. En el caso del nombre, el nombre viene desde un servicio. Pero lo que hemos visto es que lo pueden modificar.
+
+Y lo pueden modificar porque no está la certeza de que sea 100%. ¿De que el nombre esté correcto? Claro. Porque viene de un servicio de SINACOFI y parece que no está en línea el registro.
+
+Y hoy día la gente se cambia el nombre. Sí, porque lo comentábamos la vez pasada. Pero… Lo que se puede hacer ahí, que creo que se puede hacer hoy día, es pegarle un servicio que hay en el registro civil, que tú solo validas el nombre.
+
+Eso es todo. Con un root valía un nombre. Pones un root y el registro civil te devuelve un nombre.
+
+Eso es todo. Hay una consulta, son datos públicos, de una cosa pública, la información de ellos, que se usa para un montón de cosas. Pero es que entonces, si eso lo voy a dar a la punta… Por eso te lo comento ahora.
+
+Lo único que validaría yo en ese caso es que la copia de la cédula que venga… Y eso es el mismo modelo que aplicamos de OCR. Para que no rebocan cualquier cédula. Claro, eso es OCR, capturar los datos, va a un modelo de IA que te lo identifique y te lo valida.
+
+Claro, no se puede sacar el nombre desde el registro. Sí, también se puede. Y a propósito, ya que sabes de estos servicios con el registro, ¿tú sabes si está el servicio disponible del registro de deudores de mención de crédito? No lo sé.
+
+Porque nosotros ya lo consultamos en una plataforma, pero yo sé que los bancos sí tienen un servicio. Ahora, entiendo que nosotros, como seres humanos, sí podemos consultar, ¿verdad? No, yo entiendo que no. No se puede.
+
+Está restringido. Sí, se lo dan solamente a personas que tienen que trabajar con esto. Sí, está restringido.
+
+Ya, pero mira… Los empresarios pueden usarlo y las instituciones financieras. Pero ¿sabís qué? Nosotros sí tenemos acceso. Pero no sé cómo.
+
+Nosotros sí lo tenemos. Porque entiendo que cuando van a hacer una incautación, parece, o algo del proceso judicial, tienen que averiguar si la persona tiene deuda por pensión de alimento, porque parece que va primero que nosotros en el pago. Entonces, como que, oye, ya, sí, está súper, va a pagar, o le vamos a incautar, o no sé, o en remate.
+
+No me acuerdo muy bien el proceso. Están todos contentos y dicen, ah, pero tiene deuda por pensión de alimento. ¿Puedo averiguar eso? Dale, anote acá para averiguarlo.
+
+Ya. Ahora… Ya, existiendo estos otros servicios de Google y del nombre, yo quería llevarnos a la punta. O sea, para acotarlo, si yo te ayudo validando información contra lo que tú tienes y que eso se haga de forma automática, está correcto, está correcto, está correcto.
+
+Ahora, si eso no está correcto y tú lo quieres rechazar, súper simple. Súper simple el rechazo. No te desgastáis en analizar, ni procesar, ni nada.
+
+No, el nombre no viene correcto según esto, rechaza. Es que nosotros hacemos eso. Hoy día revisamos eso y si el nombre no viene correcto, yo rechazo.
+
+Ya, claro, pero hoy día es de la revisión manual, como decías. Visual. No, claro.
+
+Que nos pasan cosas. Eso es… Flux, ¿verdad? Sí. Contra… Flux, hoy tenemos el botón de rechazar.
+
+Pero por eso, ¿contra qué? ¿Contra qué valida? Buenos días. Contra Mónaco. Contra Mónaco.
+
+Contra Mónaco, ¿cierto? Qué bueno. Los documentos de Flux. O sea, la persona que revisa tiene Mónaco abierto y tiene el buzón de Flux y dando… O sea, revisa contra Mónaco el fondo que cuadra los montos.
+
+Claro. Pero los nombres y todo lo revisa contra la identidad y… Que vienen adjuntos. Que tienen la foto.
+
+Que vienen adjuntos. O sea, tiene el Mónaco abierto. Extrae los datos del cartel y hace la comparación.
+
+Saca el dato de la cédula, ve la comparación, tiene el nombre, profesión, me dijo fecha de… Vencimiento. Vencimiento de las cédulas, ¿verdad? Sí. ¿Y eso lo dan solo dentro de Flux? ¿Está bien? ¿Sí? Aprobado.
+
+Está mal rechazado. ¿Ya? ¿Ya? El mismo modelo que estábamos usando. Toma la imagen, lo cierre, reconoce el carácter, lo identifica.
+
+Ahí la inteligencia está detrás en el proceso, como te decía, de que cuando lee los datos de la cédula, los recibe y va a la IA y toma todos los datos que leyó y dice, a ver, identifica el nombre… Está bien, sí, estoy, sí. Y te lo devuelve. Ese proceso de ahí y vuelta es donde nosotros estamos ahí, donde se aplica la inteligencia artificial.
+
+Bueno, en el reconocimiento de carácter igual es una tecnología interesante. Yo creo que sí. ¿Un poquito más complicado? No, no, no, es más simple.
+
+Porque va a leer un documento y de ahí hay otras cosas. Está bien, ya. La IA donde está es que cuando… Porque lo que te devuelve del reconocimiento de carácter es un chorizo así gigante de texto y número.
+
+Entonces todo eso nosotros se lo pasamos a una IA y le dijimos, toma, identifica cuál es el nombre, el root, la fecha de vencimiento, la profesión, no sé qué cosa de esto y cuando lo identifiques, devuélvemelo y ponelo en este formulario. Y valida que esto está igual a esto. ¿Sí? ¿Está bien? Pasa, listo.
+
+¿Lo entrego en un formato JSON? El JSON te lo entrega en OCR, pero hace un chorizo de datos. Y desordenado. Texto, todo junto, los nombres todos juntos, sin espacio, no sé, los apellidos de repente con formato… Porque es un OCR, es como que lee una foto, ¿no? Como que una A chiquitita, con una letra media alemana.
+
+Y lo que hace la IA es que todo eso lo traduce a formato humano nuestro y lo pone en un formulario en los campos indicados y lo valida, listo. Todo el proceso que hace el modelo. Lo bueno es que ahí va aprendiendo con el tiempo.
+
+Entonces, no sé, los apellidos Muñoz con ñ. No sé si te has dado cuenta que de repente como que a alguien no le pone la ñ, le pone Munoz. Va a asumir de que todos los Munoz son Muñoz. Claro.
+
+Algo por el estilo. Salvo que después la persona te diga, no, no, no, ¿sabes quién me apellido de verdad? Munoz. Ahí nos mata.
+
+Ya. Entonces, me voy a quedar con dos trabajos. Con tres en realidad.
+
+El primero, ya que me mandaron la información de conciliación, la voy a poner en la plataforma para poder complementarla y poder presentarse. Yo lo junto para la próxima semana, sí. Les pido ahí, no, ya me mandaron todo.
+
+Solo que queda pendiente un usuario de testing de Flux. Ya. Eso lo consigo.
+
+Listo. Lo segundo, me imagino que es más importante este tema de la validación que el tema de pago, recuero, ¿no? Es un pago terrible de distintas. No, no, sí lo sé, pero ¿qué tema es más importante? Ya, ok.
+
+Nosotros llegamos primero. Ya. No, no, y aparte que parece que ahí habían, como dije, había tomates que se estaban tirando.
+
+Entonces, la idea es que no haya tanta fricción con los equipos. Ya, cheque. Y después veo el tema.
+
+Ahora, igual el tema de la validación es mucho más fácil. Sí. Mucho, mucho más fácil.
+
+Sí. Y ya está hecho. Sí.
+
+Y ya tenemos un motor de reconocimiento con validación. Esto es un poquitito más de esfuerzo. Tampoco es mucho, no son meses de trabajo.
+
+Nada de lo que estamos hablando son meses de trabajo. O sea, es muy, muy fácil. Y… ¿qué más? Ah, tú me decías que la información que… básicamente la validación que haces es solo contra fluxo, por lo que estoy entendiendo.
+
+Porque en Mónaco lo que validan es un monto y como que va lo mismo. Si el monto viene incorrecto, o igual ¿te importa que se valide eso? No. No, no, no es relevante.
+
+Solo la información de la segunda parte de la punta, de la pos-punta. Ya. Sí, hoy día se hacen algunas validaciones… Sí, los montos de la cuota, el monto financiado.
+
+¿Será necesario seguir validando eso? Ahora la CAMI está diciendo que tenía diferencia de un peso con un caso. ¿Y en ese caso se devuelven? Sí, dije que no pasaba. Claro, se devuelven.
+
+Entonces vamos a tener que agregar esa validación. Claro, yo le decía a la CAMI, es que esas validaciones deben hacerse como más masivas. No es el uno a uno, pero igual tiene que ser previo al curso.
+
+Sí. Ya, pero agreguémosla porque igual es automático. O sea, nosotros ahí hay un número, aquí también hay un número, es el mismo número, bien.
+
+Son números distintos. Voy a mostrar ahí un ejemplo de FLOXU. Esa es una solicitud que está pendiente de revisar por parte del equipo de curso.
+
+Yo busqué una presión puntual, entonces llega con esta tarea, con este nombre de tarea. Se le asigna un correlativo de FLOXU, dependiendo del… Y después está la ID de la operación. Esto se puede cambiar, nosotros lo ajustamos porque era más fácil de visualizar.
+
+Entramos a la solicitud. Y aquí están algunos datos del crédito que extrae directamente de Monaco. Con Power Automate, hacemos una consulta y extraemos datos.
+
+Aquí está la información del crédito, del ejecutivo y aquí están los campos donde deberían venir todos los datos juntos. Entonces acá, por ejemplo, viene la cédula. Entonces tenés que leer la cédula, leerla como… Se te levanta la imagen de la cédula y ¿qué haces? ¿Te memorizas los datos? Van comparando con la otra pantalla, por eso siempre hay un poco de tráfico en dos pantallas.
+
+Eso es lo que me imagino, tienen dos pantallas, entonces tienen una foto de la cédula y otra ventana de FLOXU. Claro, sí. O sea, tienen dos ventanas de FLOXU abiertas.
+
+Tienen una ventana de FLOXU. ¿Ya? Y la otra ventana ¿qué tiene? Y la otra de Monaco. ¿Y contra qué? ¿Y la cédula contra qué la valían? La cédula contra el pagaré.
+
+Contra el pagaré. ¿Y el pagaré cómo la tienen? Que también está acá. Está ahí.
+
+¿Un PDF? El mandato no viene acá porque el mandato está en otro lado, ¿no? Es un PDF, ¿no? Sí. ¿Lo descargan de otro lado? De Mónaco. ¿De Mónaco? Entonces, claro, van a Mónaco, lo descargan y comparan con la cédula.
+
+¿Pero tienen abierto Mónaco? Tienen abierto Mónaco. ¿Y ahí en el fondo ven la cédula y van a Mónaco, descargan, dicen si es, si es, si es? Y después en Floxo ponen check y ya. Aquí no tengo el permiso, pero aquí tienen los botones de avanzar o rechazar.
+
+Si se rechaza, se devuelve a la bandeja del ejecutivo. Ya. Entonces, más en detalle, la primera validación es la información que está en la cédula, que se extrae de la cédula, es la misma información que está en Floxo.
+
+Esa es la primera validación. Claro. Está todo correcto.
+
+El nombre es el nombre de la cédula. Exacto. Bien.
+
+¿Y esta validación que dices tú contra el pagaré de Mónaco? Contra el pagaré. Acá igual adjuntan el pagaré. Creo que cuando firman físico adjuntan el pagaré.
+
+Pero ahí lo que no entiendo, Luzma, lo que no entiendo de esto es si está el pagaré, ¿todavía no está cursado? ¿O sí ya está cursado ya? No. Ah, ya. O sea, ¿todavía no hay curso? No, yo he firmado el pagaré, pero no está cursado.
+
+Ya, ya, ok. Ya, perfecto. Sí, sí, sí.
+
+Perfecto. Ya. En este caso no hay pagaré porque hay un mandato.
+
+Claro. O sea, y en el fondo, si el mandato está en Mónaco y la persona lo tiene abierto en la otra ventana, lo descarga, lo verá, no sé, algo. Lo que necesita, que es lo que decía la Luzma, es que valida la información de la cédula con cómo está firmado el mandato o algo, el pagaré, lo que sea.
+
+Y diga, ¿está correcto? Check, pasó. Ah, ya, ok. O sea, hay como dos o tres validaciones que tiene que hacer en realidad.
+
+Sí. Que la profesión no sea de mentira, que el nombre sea correcto, que el route esté correcto, numérico, y eso que esté contra la información de Fluxu, y después que la información de la cédula, que ya está validada contra Fluxu. La vigencia, claro.
+
+La vigencia, todo eso, esté validada contra el pagaré, contra el mandato, lo que sea, y con eso, todo validado, check, pasado. Listo, perfecto. Súper.
+
+Sí. Ya. Me queda súper, súper claro.
+
+Ya, súper. Vamos entonces. Tenemos cosas que hacer.
+
+Nosotros estuvimos súper entretenidos en la semana tratando de ver cómo resolvíamos el tema del pago de recupero. Ah, ya vale. Sí.
+
+Igual, nosotros somos, como te decía, somos empresas distintas. Nosotros estamos sentados en otro lado, pero yo vi cómo les brillaron los ojos cuando dijimos, oye, mira, podríamos hacer esto, cuéntame cómo es. ¿Por qué están haciendo esto? No, ¿te acuerdas de la reunión que invitaste? Oh, estaría perfecto, nos facilita, el trabajo sería ideal para nosotros.
+
+Y dije, a ver, espérate, vamos a ser honestos. No son ustedes los que, no son mis clientes ustedes. Somos compañeros de puestos, ustedes no son mis clientes.
+
+Ya, si de, ¿cómo se llama? Por defecto les podemos ayudar, ya, todos felices. Pero yo esto lo estoy haciendo con el equipo de Tunnel. Claro.
+
+O sea, tienen que pensar en eso. Ahora, si ellos disponibilizan una herramienta para que ustedes tengan menos fricción, ya, qué bueno, todos ganamos, win-win. Super win-win para todos.
+
+Pero esto tiene foco en ellos primero, como en la automatización del post, del back, y después en el front, ya, ustedes pueden subirlo. De hecho, yo me había puesto más creativo, por eso te pregunté con el tema de lo masivo. Ahí nos pusimos más creativos, nosotros dijimos, oye, ¿y si son pagos masivos? Pensamos así como que no, tú te sientas un día, una hora al día y dices, ya, voy a conciliar, voy a subir todos los pagos.
+
+No, parece que no pasa eso, así que. Individuos, sí. Ya, super.
+
+Ya, estamos. Simona. Entonces, el tema tenemos que reducirlo así.
+
+(Transcribed by TurboScribe. Go Unlimited to remove this message.)

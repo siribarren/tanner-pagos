@@ -1,0 +1,2838 @@
+Sí, a lo que me refiero es que es el mismo flujo, solo que tiene distintas aristas.
+
+Es el mismo flujo de fluxo.
+
+Claro.
+
+Son distintas otras alternativas dentro de esto.
+
+Sí, pero en un caso sí va a aplicar un pago no.
+
+A lo mismo, sí.
+
+Y el otro no.
+
+Y el otro no, sí.
+
+Y el otro solo contando.
+
+Exacto.
+
+No tenés que hacer ni un cálculo.
+
+La plata que te llegó pasa a resultar.
+
+Claro, pero es la misma API que nosotros ya teníamos.
+
+Sí.
+
+Es la misma API.
+
+O sea, lo que yo por lo menos pude visualizar, que fue algo que igual habíamos hablado nosotros,
+
+es que la solución que nosotros estamos piloteando,
+
+si, digamos, se modulariza de una forma tal,
+
+uno podría enchufarla, recupero, a cualquier otro flujo más,
+
+que necesite automatizar un proceso, ya sea para ustedes o para el equipo,
+
+tomar datos de donde sea, de Mónaco, de no sé,
+
+ingresarlos a Flux como flujo, ¿verdad?
+
+Y conciliar algo. Así lo definí yo, conciliar algo.
+
+un comprobante, una transferencia, un dato, qué sé yo,
+
+y de ahí obviamente hacer el cálculo de, mira, este pago corresponde,
+
+que también hoy día lo probamos, este pago corresponde a tantas cuotas,
+
+entonces como que diga, identifique el modelo de IA,
+
+identifique, ah, mira, pagó 300 que corresponden a estas tres cuotas
+
+que nosotros teníamos informadas en esta fecha,
+
+entonces sí, hicimos el recálculo de capital, interés, bla, bla, bla,
+
+si mira, check, salió y este es el pago
+
+corresponde a esto
+
+esa parte del recálculo la podríamos evitar
+
+si es que es un poquito compleja
+
+porque el equipo de cobranza va guardando una foto diaria
+
+de Monaco
+
+es que le pega a una web
+
+lo que nosotros vimos es que
+
+le preguntan en una web
+
+es que le pega a esa misma base de datos
+
+que son una copia diaria de Monaco
+
+yo vi una
+
+plataforma web, no sé, ah me imagino que puede ser
+
+un power up, pero mejor
+
+si nosotros vamos y le pegamos a eso
+
+sacamos el dato todos los días
+
+Claro, o directo a la base de datos.
+
+Entonces, hasta el Power Apps.
+
+Y lo que sea más simple.
+
+Porque si de repente ir a la base de datos,
+
+o sea, hay que pedir permiso a alguien,
+
+que tenga un acceso y no sé qué cosa y tal,
+
+estoy informático.
+
+En cambio, cuando tú tenías el acceso a una Power Apps que es web,
+
+nosotros hoy día vamos y le sacamos una foto.
+
+Sí, o sea, le hacemos un scrapping,
+
+sacamos los datos, los metemos acá.
+
+Nosotros hacemos nuestro propio modelo,
+
+nuestra base de datos y nosotros hacemos los cálculos.
+
+nada, no le pedís permiso a nadie.
+
+No pasáis por TI.
+
+Es solo funcional
+
+si la
+
+digamos la inteligencia
+
+está en este proceso de tomar
+
+información, conciliarla, buscarla,
+
+recalcular, decir sí, check, match,
+
+que es lo mismo que estábamos hablando al principio.
+
+Conciliar este esto y hiciste en match y finalmente
+
+tomás esa información y la subís a Flux y te dices
+
+check, estamos listos.
+
+Y te evitáis también el coso del...
+
+El recuso ahí.
+
+Y te evitáis también el
+
+exceleo, el planilleo, la cosa
+
+del error manual, que me dicen que igual
+
+podría ir a hacer
+
+mira, yo se lo comenté así como a priori
+
+con la gente de Phoenix y
+
+ay que bueno estaría
+
+y después yo lo pensé por ustedes, dije también se evitarían
+
+hartos tomates, que era lo mismo en realidad
+
+que era nada, pero se evitarían
+
+esa cosa que por lo menos yo escuché en la reunión
+
+que era hoy, sí, pero es que de nuevo
+
+sí, en cambio la fricción, tengo el proceso
+
+sí, ahora
+
+por lo que yo vi tampoco es como que
+
+no son 3.000
+
+¿cómo se llama?
+
+¿pago en un día o en un mes?
+
+No, no, no.
+
+¿Cuántos eran al mes?
+
+No, tengo un número, pero 3.000.
+
+No, mira, a mí me dijeron que eran menos de 100
+
+en un mes.
+
+¿En un mes?
+
+¿Más?
+
+Sí, yo creo que no.
+
+¿En total?
+
+Pero no son 3.000.
+
+No, no.
+
+No sé, 300 podría ser, pero no es tanto.
+
+Entonces, como para entrar en terreno de la reunión,
+
+ese es un tema.
+
+Ahí hay un tema que nosotros...
+
+Recibí la información que me mandaron de conciliaciones.
+
+Mira, no alcancé ahora a traerle el piloto porque me mandaron la info tarde,
+
+pero ya tengo...
+
+Está ahí.
+
+Yo creo que ya mañana o el lunes a más tardar
+
+estaría a funcionar con lo que ustedes nos mandaron.
+
+Pues ya estaba listo.
+
+Solo faltaba ese input.
+
+Vimos la API de Fluxo, no tiene ninguna gracia.
+
+O sea, digo, en términos de...
+
+No tiene ninguna complejidad adicional.
+
+A eso me refiero que va a consultar, listo, ingresar.
+
+sí sería quizás necesario
+
+si es que tienen
+
+solo si tienen
+
+algún usuario demo
+
+algún usuario de prueba
+
+de Fluxo
+
+que lo usen
+
+como para probar cosas
+
+o pirotear
+
+o si ustedes lo pueden crear
+
+tendríamos que pedirlo
+
+tendríamos que pedirlo
+
+ya
+
+oye
+
+si tiene gusto
+
+no lo hagan
+
+si no es muy complejo
+
+no
+
+si es un usuario de prueba
+
+básicamente
+
+para nosotros
+
+poder inyectar
+
+ya
+
+eso es lo único
+
+que necesitamos
+
+ya vale
+
+un usuario de prueba
+
+inyectar datos y ahora
+
+en esa inyección de datos lo que nosotros
+
+esperamos es que los datos del modelo
+
+aparezcan en
+
+se vayan a Fluxo y que nos digan
+
+ok, ya están en Fluxo, eso es todo
+
+ahí lo que pasa después
+
+de eso nosotros no lo sabemos, o lo saben
+
+ustedes, porque como hay un flujo
+
+nosotros no nos metemos ahí
+
+sino que nuestra barrera, nuestro límite sería
+
+hicimos todo
+
+conciliamos, fuimos acá, marcamos
+
+que fue lo que la alumna me decía que vale
+
+hay que marcar la conciliación
+
+Es la cartola, claro.
+
+La marcamos, toda esa información se pasa a Fluxo
+
+y de ahí regresamos todo el éxito del mundo del proceso.
+
+Que les vaya súper bien.
+
+Ojalá que resulte todo.
+
+Pero no sé qué más podemos hacer nosotros más allá.
+
+Y con el caso, eso con conciliación.
+
+Y en el caso de los pagos, de lo que estábamos hablando,
+
+así le llaman usted o no, pagos.
+
+El proceso es muy, muy, muy similar.
+
+Muy similar, si te das cuenta.
+
+con la única diferencia
+
+es que
+
+tenemos un usuario de acá
+
+que lo de Power Apps igual lo tenemos
+
+tenemos un usuario, tenemos un usuario también
+
+nosotros de Monaco que podríamos probar
+
+¿para aplicarlo?
+
+sí, sí, tenemos un usuario de una de las
+
+chicas que está ahí
+
+en realidad no vamos a hacer
+
+lo que te decía, no vamos a hacer nada ni en Monaco
+
+no vamos a hacer nada en Flux tampoco
+
+no vamos a ingresar requerimientos así como que se llenen
+
+de requerimientos de demo
+
+sino que solo vamos a corroborar que la información
+
+vaya hacia allá, que viaje
+
+que llene todos los campos
+
+creo que
+
+para el caso de los
+
+lo que no tengo, eso sí, lo que no tengo
+
+de Fluxu, es
+
+en ese combo que se despliega
+
+cuál es la opción de la conciliación
+
+no la tengo, claro, en ese combo tenemos esta opción
+
+que comentabas tú, son como 6 menú
+
+pero en la conciliación
+
+no hay un menú específico, o sí
+
+sí, me imagino que sí
+
+no los vi
+
+no los vi
+
+ahora tampoco
+
+me cuesta mucho
+
+ir a una compañera
+
+sentarme
+
+que le haga clic
+
+y ver los menús
+
+pero
+
+usan uno
+
+que se llama conciliación
+
+ya perfecto
+
+y en el caso de los pagos
+
+también vi que había uno
+
+que se llamaba como
+
+recupero cuota
+
+recupero castigo
+
+es el que estamos viendo
+
+con Leslie
+
+ya
+
+que nos juntamos
+
+una semana
+
+entonces
+
+si están esos dos estados
+
+yo con la conciliación
+
+lo que podría hacer
+
+es que tengo
+
+esa información
+
+y una vez que ya concilié
+
+marqué la cartola
+
+tomo esa información
+
+y la subo a Fluxux con esa opción.
+
+Y ahí quedó.
+
+¿Ya?
+
+Sí, bueno, en algún momento hablamos también de llevar la cartola mejor a una base de datos.
+
+Sí, sí, sí.
+
+Si nosotros la tenemos considerada.
+
+La tenemos considerada.
+
+También como dentro de la misma plataforma,
+
+uno de los menús que tú puedas decir como que cartola conciliada
+
+o no sé, cartola unificada,
+
+la puedas pinchar y te muestra en una tabla.
+
+En una tabla que es más usable que el Excel que tenían ustedes, ¿verdad?
+
+con una simafonita y cosas así, que se vea la cartola unificada.
+
+La puedan consultar y esté marcada.
+
+¿Qué significa eso?
+
+Que el pago conciliado esté marcado en la cartola así,
+
+bien destacado, con un verde,
+
+el que está conciliado, con un amarillo,
+
+que es el mismo modelo que habían presentado.
+
+Los amarillos que están pendientes y los rojos que fueron rechazados.
+
+O sea, como, mira, ¿sabéis qué?
+
+Este dato de la cartola está verde porque está conciliado.
+
+Este dato en la cartola está en amarillo
+
+porque parece que es el que se trató de conciliar,
+
+pero no estamos muy seguros.
+
+Necesitamos más anteciente que confirmarlo.
+
+Ah, los rojos no es necesario que se marquen en la cartola.
+
+No, están causados.
+
+Ya, no están marcados, están rechazados
+
+y ahí alguien tendrá que hacer algo.
+
+Entonces eso ya no sería marcar un Excel,
+
+sino que sería marcar una base de datos
+
+y ahí después tú puedes descargarlo
+
+y ahí puedes hacer lo que quieras.
+
+Y las métricas que ya habíamos hablado
+
+de cuánto llevas conciliado, por fecha acumulado,
+
+¿Cuántas conciliaciones has hecho?
+
+¿Va a contar uno?
+
+Eso es como lo que nosotros en general hicimos.
+
+Con eso ya tendríamos el flujo completo, por lo que entiendo.
+
+No nos faltaría nada.
+
+Para empezar por lo menos, sí.
+
+Oye, ahora cuando concilian, cuando alguien logra una conciliación como validada,
+
+¿le avisa a alguien algo?
+
+¿Alguien avisa algo o se avisa?
+
+Pero internamente...
+
+no hay ni correo ni nada esas cosas pero no le gusta no les parece da lo mismo
+
+ya nosotros lo preguntamos y como que no le gustará que le mandemos un correo como este
+
+pago fue conciliado correctamente no es necesario si por eso lo pensamos eso lo pensamos lo pensamos
+
+Ya, entonces con eso tendríamos 100% el tema de conciliación bancaria.
+
+Yo creo que ya la próxima semana podríamos ver el piloto completo funcional
+
+con lo que estamos hablando.
+
+Y yo les había preguntado si tenían alguna otra opción
+
+de alguna otra cosa que se les hubiera ocurrido al respecto
+
+porque estaba solo la conciliación, ¿verdad?
+
+las métricas de la conciliación que ya hemos hablado,
+
+todo el proceso de conciliar.
+
+Y, por ejemplo, algo que me quedó pendiente,
+
+conciliaciones masivas.
+
+¿Se las hacen?
+
+O sea, como algo parecido al tema del recupero de los pagos
+
+era que subes un comprobante que corresponde a seis líneas,
+
+lo voy a decir así, de la cartola.
+
+Eso pasa, ¿verdad?
+
+Sí.
+
+Un comprobante, por ejemplo, por seis millones,
+
+que corresponde a 6 líneas de la cartola de 1 millón.
+
+Era un caso que nosotros nos planteamos.
+
+Como el Vale Vista, por ejemplo, que es de 2 millones.
+
+Sí, puede ser al revés.
+
+¿Cómo al revés?
+
+Como en la cartola tenga...
+
+O sea, cuando no...
+
+Claro, es un movimiento...
+
+Ah, ya.
+
+En la solicitud de aplicación de pago, sí.
+
+Podría tener como, no sé, dos abonos que apliquen a una cuota, por ejemplo.
+
+Sí, pero en lo de pago, yo me quedo claro que sí.
+
+Lo conversamos con el equipo y me mostraron ahí un ejemplo que sí,
+
+que hay como con esa cardinalidad que es 1 a n.
+
+Un pago son n cuotas o ya.
+
+Pero en conciliación, no.
+
+No hay un comprobante de conciliación que cuando uno vaya a la cartola
+
+diga este comprobante corresponde a este, este, este y este.
+
+Pero ahí con la recaudación, pensando en la recaudación,
+
+porque nosotros tenemos algunos de los recaudadores
+
+que nos transfieren todo
+
+como Servipac
+
+entonces es una línea lagartola
+
+pero tenemos otro que es directo
+
+que es el caso de Upago
+
+ahí nosotros conciliamos
+
+un masivo
+
+si, lo vi
+
+¿y ellos qué te informan?
+
+los Upago
+
+son la nómina de pagos
+
+si, si, si, lo vi
+
+ahora ahí es más fácil
+
+porque el valor
+
+que se pagan los pagos es el valor que tú le informas
+
+que tienes que pagar. No es que
+
+él transfiera lo que él quiera transferir, no.
+
+Pero puede ser más de una transición. Puede ser parcializado.
+
+Claro.
+
+Claro, si son mayoría de 5 millones
+
+puedo tener hasta 3 transferencias
+
+porque son transferencias.
+
+¿Ago pago? Ah, yo pensé que era pago
+
+con botón o con pasarela.
+
+La primera
+
+que es de 250
+
+yo pensé que era pasarela
+
+así como Toku, como Kipu
+
+y cosas así. Ups.
+
+Mira tú. Mira vos.
+
+No. Entonces nosotros conciliamos
+
+la nómina que ellos nos mandan.
+
+Vamos a marcarla.
+
+Ahora tú le cargás
+
+la deuda
+
+esa de dónde va.
+
+Descargamos de mona.
+
+Pero se la descargan de mona y que se la suben a ellos.
+
+Tampoco es directo.
+
+No.
+
+Ya.
+
+Ya.
+
+Porque en el fondo si tengo esa nómina tuya
+
+después lo que ellos te paguen
+
+solo tengo el detalle del pago
+
+tengo la conciliación del monto único
+
+que ellos te pasan
+
+y claro, yo lo que tendría que hacer sería
+
+tengo un millón, tengo 10 cuotas de 100
+
+y esto de acá, esto de acá, listo ya
+
+está conciliado
+
+no veo más complejidad en eso
+
+no, no es que sonreír
+
+ahora ese proceso lo haces una vez al día
+
+una vez al día
+
+y eso lo haces a mano igual
+
+por lo que estoy entendiendo
+
+Mira, está interesante, lo podríamos hacer
+
+O sea, tú cargas la
+
+Cargas la nómina
+
+De Upados
+
+Yo tengo tu información de Mónaco
+
+Que es la que
+
+Ahora
+
+No tiene la información de la cartola
+
+Eso es con la cartola
+
+Pero es que si tengo la información de Mónaco como la estamos pensando
+
+Ahora, eso yo como un usuario
+
+Tengo acceso a eso, ¿o no?
+
+Solo ustedes
+
+¿A Mónaco o la base de Mónaco?
+
+¿Para qué necesitarías la información?
+
+Mira, porque en el fondo lo que yo estoy pensando es esto.
+
+Upagos te va a mandar un monto, ¿verdad?
+
+Y ese monto corresponde a N cuotas, ¿verdad?
+
+A N...
+
+Es un prepago.
+
+Ya, un prepago.
+
+No, son cuotas.
+
+Ya, a N, ¿verdad?
+
+No está detallado eso.
+
+Entonces, lo que tú necesitas es conciliar este pago con estos prepagos, ¿verdad?
+
+Con estas líneas.
+
+Y eso ir a identificarlo a la cartola, ¿verdad?
+
+O sea, tienes que tomar estas dos informaciones, procesarla e ir a la cartola y decir,
+
+este corresponde a este, este corresponde a este, este corresponde a este, este, listo, marcar,
+
+y después, cheque, está conciliado esto, bien, pasa.
+
+Entonces, este monto que está acá, de los prepagos, yo no los tengo hoy día.
+
+A eso me refería.
+
+Y los necesito para poder calcular, o sea, para hacer el match con la nómina que te paga,
+
+con el número único que te mando pago, y con eso ir a la cartola a hacer la búsqueda uno a uno.
+
+No sé si se entendió.
+
+Eso necesitaría yo para poder hacer el cálculo, porque si tengo un solo monto,
+
+salvo que tú tengas un identificador
+
+en la cartola único que es
+
+el pago de UPagos.
+
+Es que UPago me informa más de uno.
+
+Y siempre vienen identificados como
+
+pago de UPago en el fondo.
+
+Ah, ya. Entonces es más fácil.
+
+Pero yo tengo identificado aquí
+
+la versión correspondiente.
+
+Ya, porque nosotros siempre nos ponemos el peor de los casos.
+
+De hecho, vimos algunas cartolas
+
+de office banking de nosotros
+
+y sale así como que pago por transferencia.
+
+Y nosotros decíamos, ya, pero
+
+¿qué más? No, nada. Pago por transferencia.
+
+Ya, pero espérate, tiene que venir
+
+Si lo haces clic en la I, un detalle
+
+Tengo el valor del prepago
+
+Tengo la nómina de un pago
+
+Que puede venir más de un registro
+
+Este es un registro, este pueden venir varios
+
+Que corresponden a lo que es la cartola
+
+Y en la cartola tienes identificado
+
+O sea, tengo que ir después a conciliar
+
+Esto que me manda un pago con la cartola
+
+Pero por eso, la identificación en la cartola
+
+Ya sabes que es tu pago
+
+No
+
+son transferencias
+
+pero no tienes un detalle
+
+lo que sí es uno a uno
+
+debería ser uno a uno
+
+eso sí
+
+si son tres transferencias
+
+yo tengo tres registros en la cartola
+
+pero yo tengo que ir a marchar
+
+claro, entonces entendí lo que me decías
+
+que no es necesario ir a Mónaco a sacar el monto
+
+sino que solo tengo que marchar
+
+lo que te informo Pago en su nómina
+
+sumar el monto, ir a conciliarlo
+
+y que voy a venta al final
+
+el monto de lo que yo concilie acá
+
+tiene que ser lo mismo que está acá
+
+sumado
+
+perfecto, ah más fácil
+
+pero en el fondo
+
+para qué me sirve para ir
+
+a dejar registrado
+
+las transacciones de la cartola que dejo
+
+tomada
+
+¿tienes errores ahí?
+
+como descuadres
+
+y cosas así, o es solo por evitar
+
+un trabajo manual de uno a uno y que se automatice
+
+ah ya, ok
+
+ya
+
+Y lo que podría ser complejo, pero así tampoco es una cosa muy de la NASA,
+
+es aplicar estas reglas de qué pasa si hay un descuadro y tal cosa,
+
+rechaza el pago, rechaza la conciliación, déjala pendiente.
+
+No, entonces si hay automatización y siempre va a cuadrar,
+
+digo lo de pago solamente, perfecto.
+
+Pero hoy día no tenemos una gran hora, yo creo que para nosotros es más simple hacer eso.
+
+O sea, hacer esa automatización.
+
+Ya, entonces, lo de conciliación, yo creo que ya la próxima semana les voy a avisar si está todo listo.
+
+Lo que sí necesitaría, como te dije, es un usuario de Fluxo, de prueba, ¿verdad?
+
+Ahora, nosotros no vamos a hacer ningún ingreso en Fluxo, nada.
+
+Lo que necesitamos es que nos den un usuario para que cuando tengamos todo hecho,
+
+podamos saber que podemos ingresar datos en Fluxo y hasta ahí llegamos.
+
+Sí, lo intentamos pedir con Andrés y no.
+
+ahora quiero decirles la verdad
+
+nosotros podríamos hacerlo
+
+con un usuario nuestro
+
+de Fenix, de la gente que
+
+trabaja con nosotros, el tema está
+
+en que yo no sé qué tal nivel de auditoría
+
+o de control tiene Fluxo para que
+
+nosotros podamos ingresar algo que diga
+
+ejemplo, demo, test, prueba
+
+un solo registro y con eso ya
+
+chequeo funciona
+
+si lo controlan ustedes y no genera ninguna
+
+problemática desde el punto de vista de auditoría, de control
+
+de registro, porque no
+
+tiene monto un peso, no sé, cosas así.
+
+Pero podemos hacer prueba en test, también tiene un ambiente de test.
+
+Ya, eso, perfecto. Si tiene un ambiente de test, perfecto. Me pasa un acceso
+
+y nosotros probamos. Pero, o sea, lo que me interesa es que quede claro
+
+que lo que nosotros vamos a hacer es que una vez que hagamos todo esto, ¿verdad?
+
+El ingreso en Fluxo va a ser todo lo que tenemos.
+
+Aquí está ingresado en Fluxo, sí, check, check. Alguien, o sea, no alguien.
+
+Se va a apretar el botón y después el flujo ya es un flujo de usted.
+
+Ya hasta ahí vamos a llegar.
+
+Muy encantados de haberlo hecho más avanzado.
+
+De a poco, de a poco, de a poco.
+
+Sí, vamos de a poquito.
+
+Ya, y con el tema de los pagos,
+
+me imagino que igual como lo estábamos conversando.
+
+Sí, eso lo vemos ahí con Leslie la próxima semana.
+
+Sí, sí, sí.
+
+Ya, nosotros igual la próxima semana, si nos juntamos,
+
+yo les voy a traer igual el prototipo para que vean
+
+cómo nos imaginamos la solución del tema de los pagos.
+
+Ya armamos algo, ¿ah?
+
+Armamos algo, no está listo, no está mostrable hoy,
+
+pero ya armamos algo que usa el mismo modelo de reconocimiento de la foto,
+
+en el fondo, de match, de análisis de los datos con algo,
+
+un match, y después te dice, sí, ya está listo y todo,
+
+y entrega un resultado que hasta el momento no lo hemos hecho,
+
+no hemos podido ingresarlo a Fluxo, pero debería poder ingresarlo a Fluxo
+
+y se manda solo.
+
+Ahora, él manda solo, igual lo que queremos es mostrar una pantallilla,
+
+a alguien que diga, usted va a mandar
+
+el siguiente pago por tal monto, por tal
+
+ID, por nada, la cosa,
+
+el detalle, sí, va a mandar botón.
+
+Claro. Cosa que la gente
+
+de... La idea es que deje una traza en alguna parte
+
+y que además pueda avanzar la tarea en Fluxo.
+
+O sea, va a ser eso.
+
+Con un solo clic va a ser eso.
+
+Va a quedar registrado, quién lo hizo, qué hora, etcétera,
+
+qué monto, cómo va el ID, etcétera, etcétera.
+
+Pero evitarle el trabajo
+
+del Excel, evitarle el trabajo...
+
+Claro, que vaya a marcarlo en la cartola,
+
+que avance la tarea y que además deje la traza en...
+
+Ah, eso es lo otro. Ellos cuando hacen ese pago, ellos, o sea, mis compañeros que están en el puesto, no hacen nada en la cartola, no saben nada. Eso lo saben ustedes, ¿no?
+
+Claro.
+
+Ah, ya. Bueno.
+
+Sí, porque ahí podríamos trabajar en dos líneas. O sea, la línea del frente, por decirlo así, en el front, y también hacer el desarrollo el mismo de la conciliación que estamos hablando.
+
+Si es lo mismo.
+
+Claro.
+
+¿O no?
+
+Podría ser distinto en realidad.
+
+Porque el mismo proceso de conciliación. Tengo un pago, lo tengo en una cartola,
+
+recibí un pago, tengo que ir a buscarlo, che, está marcado.
+
+Claro, que me cuadra el monto con los de Flores.
+
+Ahora, algo había dicho, Lesslie, de...
+
+O tú, Bárcela Luzma, dijiste cómo se marcaba, a dónde iba. Algo así.
+
+¿Qué cosa?
+
+En la marca, en la cartola, como a dónde iba. Eso fue lo que me acuerdo que hablaron.
+
+Dónde iba, cuando se marcaba, como cuál era el tipo de marca que se hacía,
+
+cuál era el destino, puede ser, ¿o no?
+
+Ah, el uso.
+
+Uso.
+
+Disculpa, uso.
+
+Uso, el uso.
+
+En la cartola.
+
+Claro.
+
+¿Eso lo hace en la mano?
+
+Sí, pues lo hace en la mano.
+
+¿En el SAT, dices tú?
+
+En la cartola.
+
+En el SharePoint.
+
+Ah, sí.
+
+Marcan en que se utilizó.
+
+Es que eso entiendo yo que estamos automatizando.
+
+Es ir a marcar justamente este archivo.
+
+Claro, pero ¿cuántos tipos de uso hay?
+
+¿Cómo tipo de uso?
+
+¿O hay una sola marca?
+
+Mira, lo que pasa es que
+
+primero lo agotamos solamente al flujo
+
+de recupero castigo.
+
+Entonces solamente vamos a tener en esa marca.
+
+Si nos va bien con eso, ya lo podemos replicar.
+
+Ok, entendí.
+
+Ah, ya, ok.
+
+O sea, si nos va bien con una sola marca,
+
+después podemos hacer N marcas.
+
+Claro, y implementamos otra marca.
+
+Qué bueno que me lo contaste porque ya lo puedo desarrollar
+
+pensando en multiusos,
+
+en multimarcas.
+
+Ya, qué bueno.
+
+Yo creo que eso lo podemos revisar
+
+después de la próxima semana con Lensi.
+
+Yo creo que ahora nos podríamos enfocar en el tema de UCA.
+
+Sí.
+
+Sí, para nosotros más...
+
+Nos estamos grabando, ¿no es cierto?
+
+No.
+
+Te tengo dos noticias.
+
+¿Una buena y una mala?
+
+No, las dos buenas.
+
+O sea, las dos buenas.
+
+Esas son las que nos gustan.
+
+O sea, tú evalúa si son buenas o son malas.
+
+Yo te conté que nosotros trabajamos con General Motors.
+
+Igual.
+
+Ya.
+
+Nos llamaron y nos dicen, supimos que alguien,
+
+está tratando de hacer evaluaciones, validaciones en el otorgamiento,
+
+ellos le llaman, creo, o curses.
+
+Queremos saber qué están haciendo ustedes con eso.
+
+Y no sé de qué forma, hace poco nosotros firmamos un contrato con Forum
+
+y ellos tienen algo, tienen una cosa que hace cosas de validación,
+
+pero les anda horrible y tienen el mismo problema que tienen ustedes.
+
+Ninguna fuente de información fiable.
+
+y creo que tienen fraude así como las 30 días,
+
+fraude al tiro.
+
+Entonces, valían, creo que van a,
+
+o sea, a qué base de datos van,
+
+y la información que tienen no les sirve para nada,
+
+y valoran un motor de riesgo,
+
+tampoco les sirve para nada,
+
+como para clasificar niveles de riesgo.
+
+Hay distintas cosas, porque si tú tienes un motor de riesgo,
+
+pero entraste con una identificación falsa,
+
+no te sirve nada, el motor de riesgo,
+
+que vas a decir súper bien.
+
+Bonito en la foto, digamos, pero sí.
+
+Bueno, ahí también comentarte que lo que yo te había dicho el otro día
+
+era que yo quiero automatizar el curso.
+
+En el caso del curso, ya que es la parte que hacemos nosotros,
+
+que pongamos atención a la alta parte de la conversación,
+
+nosotros hacemos ciertas validaciones en el fondo
+
+para certificar que la persona que está pidiendo las operaciones, la que me firmó los documentos, etc.
+
+Entonces estuvimos revisando en la mañana un poquito las validaciones que nosotros hacemos,
+
+que en realidad son muy simples.
+
+Ya vemos que el nombre viene escrito, que la dirección sea una dirección que venga correctamente escrito,
+
+ni siquiera que sea una dirección mal.
+
+Como yo, por ejemplo.
+
+Calle número...
+
+Región.
+
+Pregunta de ignorante. ¿Y cómo valía eso?
+
+Nosotros lo valíamos visual.
+
+No, si hoy día todo esto es visual.
+
+Lo que yo te voy a decir
+
+ahora es lo que nosotros
+
+hacemos una mega ama.
+
+Nosotros valíamos primero que la cédula
+
+que viene es la misma que la operación.
+
+El root es igual al root.
+
+Después que el nombre está escrito igual.
+
+Firma ya no valíamos porque viene firmado
+
+digital. Valíamos la dirección
+
+que venga con un formato
+
+específico.
+
+Valíamos la profesión
+
+que sea una profesión
+
+válida, porque no se ingresa
+
+respecto a una tabla ni nada.
+
+Ya, sino que validamos que no le pongan
+
+una aberración. ¿Y tú dónde sacas?
+
+Tú vienes de Mónaco.
+
+Ah, ya por eso. ¿Ya tienes la profesión en Mónaco?
+
+Sí. ¿Y esa la tienes validadísima?
+
+No, no, no.
+
+No, no está en Mónaco.
+
+Estamos pidiendo como la solicitud de que venga, pero el ejecutivo la puede escribir.
+
+¿De dónde la digital?
+
+En Mónaco.
+
+Sí, pues esos campos nos agregaron con la firma digital.
+
+Lo que pasa es que lo puede digitar a mano, no tiene una lista desplegable para que no turnamos a Tau.
+
+Ya, nosotros queremos llegar a una lista desplegable.
+
+Mientras no la tengamos, la única validación que hacemos nosotros es que sea razonable lo que dice.
+
+Ya, tenemos como una regla.
+
+Ya, ¿qué más validamos?
+
+¿Pagaré?
+
+Que no sea de más de 10 días.
+
+No, no tenemos que pagar.
+
+Que la operación no tenga más de 10 días.
+
+Pero no son más de 8 cosas.
+
+Vamos a separar un poquito por tipo de operación.
+
+Si es un crédito de titular que no tiene aval y no sé qué, una cosa.
+
+Si es con aval otra cosa, si es empresa otra cosa.
+
+Pero partiendo con lo más simple que es, además del 80-20, son súper pocas las cosas que se valen.
+
+¿De cuánto estamos hablando de operaciones más o menos mensuales en el día?
+
+Son como mil personas mensuales.
+
+Ya, ok.
+
+¿Y cuántas personas hay detrás de eso?
+
+De 500.
+
+500 personas.
+
+¿Y cuántas personas hay detrás de esa validación mensual?
+
+No, que me cursa tres personas.
+
+Ah, ya, ok.
+
+Tres, quinientas, dos mil.
+
+Ya, ok.
+
+Ya.
+
+Nuestro tema, más allá del número de personas,
+
+Nosotros tenemos una concentración muy grande
+
+los dos últimos días de mes.
+
+Pero muy grande.
+
+Entonces, si la operación está mala,
+
+nosotros la tenemos que reparar.
+
+Y el área comercial nos reclama porque nos demoramos
+
+en reparar.
+
+Claro, porque ellos, en el fondo,
+
+ellos mandan nomás.
+
+No se preocupan si mandaron bien o no mandaron bien.
+
+Nosotros como que somos
+
+sus validadores de todo.
+
+Ni piensan ni mandan.
+
+Y tenemos
+
+una presión
+
+los últimos días del mes.
+
+Entonces queremos en el fondo que eso sea automático.
+
+Rechazar automático.
+
+Lamentablemente nosotros no pudimos llevar estas validaciones a Monaco.
+
+Nosotros hubiera sido ideal meter el RUD y que los datos lleguen del registro civil.
+
+Hoy día nosotros tenemos un servicio que es con Sinacofi,
+
+pero hemos visto que los datos no están 100% en línea con el registro civil.
+
+Entonces no lo podemos hacer de ahí.
+
+Entonces, esa es la parte, esta parte
+
+inicial que nosotros queremos, ojalá, no hacer
+
+ni una validación a mano.
+
+¿Ya? Que pase automático.
+
+Ya, ahora,
+
+ya, dale. Dicho eso,
+
+que yo lo comenté
+
+en una reunión, y me dijeron, oye,
+
+¿y por qué no hacemos la validación?
+
+Y me tomo lo que estáis diciendo,
+
+que es la etapa previa,
+
+que lo tiene riesgo, para que también
+
+se haga automático, porque lo hacen a mano.
+
+¿Cachai? Ahí validan,
+
+no sé, comprobantes de domicilio, liquidaciones de sueldo, un montón de cosas.
+
+Entonces, tenemos la oportunidad también de poder hacer algo ahí.
+
+Pero hoy día yo, mi prioridad soy yo en esta parte del curso.
+
+Ya, mira, justo ayer lo hablamos con el equipo que hace esto hoy día,
+
+que hace la operación en terreno, y me contaron del proceso que hacen ellos,
+
+que tampoco es un gran proceso, y es que cuando se genera la validación,
+
+se genera la solicitud de validación, nuestros ejecutivos que están en terreno
+
+van y... ¿Aquí vive Simón? Sí, aquí vive Simón.
+
+Ok, listo. Y hoy día lo que nosotros vamos a hacer internamente es una plataforma
+
+bien sencilla, que es como la de los receptores judiciales, los notificadores,
+
+que van y dicen, marca, sí, aquí vive Simón. Está confirmado.
+
+Yo la confirme aquí y dice, yo subo una aplicación,
+
+no sé, por las ubicaciones, coordenadas GPS,
+
+nosotros hacemos como le llaman el estampe, ¿no es cierto?
+
+Lo mismo, y lo recibimos y lo podemos validar.
+
+Listo, para nosotros internamente.
+
+Y ese proceso de validación, que es un proceso que nosotros hoy día
+
+como Fenix hacemos, se vende el proceso, no sé, un servicio.
+
+Ahora, lo que nosotros propusimos fue, por ejemplo,
+
+que el proceso de preguntaba por las direcciones,
+
+lo que nosotros hacemos es tomar esa información de la dirección
+
+y, por ejemplo, ir a preguntarle a la API de Google Maps
+
+y que vea que es una dirección válida.
+
+Ya nos ha pasado que hay gente que pone direcciones,
+
+así como que no, no sé, pasaje oscuro sin número.
+
+Y todos los sistemas lo valían, pasaje oscuro sin número,
+
+no sé, concepción, listo.
+
+Listo, pasa tu localidad y sí, pasaje oscuro sin número, concepción.
+
+Pero tú tomas esa dirección, vas a la API de Google Maps
+
+y te busca coordenadas y te busca así como que en medio un cerro.
+
+Y no tiene más consultas, no tiene más validez.
+
+Pero una consulta, ¿acá riesgo no hace esa validación de dirección?
+
+No.
+
+En algunos casos pide comprobante de domicilio.
+
+Pero porque deberíamos ver que en el fondo la dirección debería tener validación por riesgo.
+
+Es que no la varía siempre.
+
+Entonces, en algunos casos pide comprobante de domicilio.
+
+Entonces ahí estaría validada, pero no es en todos los casos.
+
+Entonces habría que entender bien ahí qué es lo que se valida ya y qué es lo que validamos nosotros.
+
+Porque también estábamos discutiendo eso que son los firmantes.
+
+Nosotros en una operación tenemos que saber el estado civil de la persona.
+
+Para saber quién tiene que firmar.
+
+Entonces hoy día hay cosas que no estamos validando, que creemos que las valía riesgo, no sabemos si es así o no.
+
+Hay cosas que valiamos, por ejemplo, del aval, pero no del titular.
+
+Entonces, igual está raro.
+
+Tenemos que revisar el tema de los firmantes.
+
+Ahora, yo necesito saber en la punta los firmantes,
+
+porque la documentación tiene que salir ahí con los firmantes que corresponden.
+
+Entonces, si me ponen mal el estado civil de alguien, me sale todo mal después.
+
+Y eso te golpea a ti.
+
+Es que tengo que devolver la operación.
+
+Y los comerciales se enojan mucho.
+
+Sí, claro.
+
+Es que cualquier reparo,
+
+nosotros tenemos una tasa de reparo que es alta.
+
+Entonces cualquier reparo
+
+es un retrabajo.
+
+Y hay reparos que te saltan
+
+cuando ya cursaste la operación.
+
+Porque hay cosas que yo no valido
+
+en el curso, las veo después.
+
+Entonces me saltan después.
+
+Entonces hay que corregir algo,
+
+volver a que el cliente te firme.
+
+Y en el caso de los fraudes ya cursaste.
+
+Ya cursaste.
+
+¿Y esa tasa es alta?
+
+¿Qué cosa?
+
+Como de los fraudes de detectados, por ejemplo, los 30
+
+Ah, ya
+
+Igual ahí
+
+Nosotros nos dimos cuenta
+
+Ya, entonces
+
+En el contexto, lo del curso
+
+Lo de la validación manual
+
+¿Qué quiere hacer la automática?
+
+Está perfecto
+
+Nosotros tenemos
+
+Me puede complementar
+
+Tenemos ahí
+
+Power Apps
+
+para los ejecutivos de cuenta
+
+donde ellos ingresan ahí el número de la operación
+
+y con eso rescatan datos desde Mónaco
+
+y todos esos datos, adjuntan documentos
+
+y todos esos datos después se llevan a Fluxo
+
+parte un flujo de Fluxo con eso
+
+y a nosotros nos llega esta actividad por Fluxo
+
+con alguna documentación adjunta
+
+¿De dónde salen el ID ellos?
+
+Ellos saben el ID, lo tienen de Mónaco
+
+Ah, ya.
+
+Lo hicimos así en el fondo.
+
+Ellos cotizan previamente.
+
+Sí, sí, sí.
+
+Y ahí les da un ID.
+
+Y con ese es para toda la vida y todo el flujo del mismo.
+
+Perfecto.
+
+Ya.
+
+Sí.
+
+Y lo hicimos así en el fondo porque nosotros no tenemos fluxo desde la punta.
+
+Ya.
+
+Entonces, por número de licencia.
+
+No, y tampoco tendría sentido si es como...
+
+Y tiene el foco de BPM.
+
+Te devolviste loco si tenías un BPM en la punta porque no debería ser para eso.
+
+el BPM es cuando ya hay un proceso detrás
+
+claro, entonces se te abre
+
+mucho, entonces la solución
+
+es que la hizo el equipo de Fred
+
+en el Power Apps, y eso
+
+inicia después el flujo
+
+ya, entonces ellos ya
+
+cotizaron, sacan el ID
+
+van al Power Apps
+
+complementan
+
+cuando ya quieren consultar
+
+y ahí está toda la información que ellos
+
+que tienen a la vista me imagino
+
+claro, son datos principales
+
+más que todo para tener como una experiencia.
+
+Lo que estabas comentando tú.
+
+El ID que están consultando es el correcto,
+
+el nombre del cliente, el root, qué sé yo.
+
+Ya, y eso le llega a usted.
+
+Claro.
+
+Ya, y de ahí...
+
+Si nosotros debiéramos validar con la data que viene en Fluxo,
+
+más los documentos adjuntos,
+
+ya yo me imagino que no van a sacar nada de remora.
+
+Esos documentos adjuntos, disculpa, ¿cómo llegan?
+
+¿Cómo llegan a Fluxo?
+
+Sí, o sea, ¿cómo lo llevan ustedes?
+
+¿Con un correo adjunto?
+
+¿Cómo los ven ustedes esos datos adjunto?
+
+Por Sistema.
+
+Por Floxu. Ah, ya.
+
+Pero me imagino que les llega una notificación,
+
+llegó algo nuevo, van a Floxu, ¿verdad?
+
+Que Floxu es como un correo.
+
+Tiene una bandeja.
+
+Sí, eso quería saber.
+
+Eso quería saber.
+
+Ya, lo imaginé, no se lo había preguntado,
+
+pero era como lógico que si no es por correo,
+
+¿verdad? Debe estar con Floxu abierto
+
+y se le abre una notificación de llegó uno nuevo
+
+y a revisar, etcétera, etcétera.
+
+Ya.
+
+Ya, ahora...
+
+Entonces, en esa etapa inicial que nos llega a nosotros, queremos que estas variaciones sean automáticas.
+
+Ya, y quieres rechazar de forma automática, no dejar pendiente, parece que no es...
+
+Te rechazo.
+
+Ya, ok.
+
+Pueden haber casuísticas que, no sé, con el caso de la dirección,
+
+ahora si nosotros vamos a validar con una API de Google...
+
+Sí.
+
+¿Sabes qué? Es de verdad, nosotros la revisamos, es imposible, de hecho nos llegó, claro, InfoGet, que es una plataforma que nosotros usamos cuando ya tenemos 3, 4, 5 búsquedas negativas y no podemos dar con la persona, tenemos acceso a InfoGet y nos pasan así como direcciones de la que te digo yo, Calle Oscura sin número, no sé, Peldegue.
+
+Y nosotros así como dice, ¿con qué hacemos con esto?
+
+No tenemos nada que hacer con esta dirección.
+
+Entonces nosotros tomamos información, se la pasamos parcial, apide, Google Maps,
+
+Google Maps la ubica y dice, ah, parece que esto es esto y es acá,
+
+manda de vuelta las coordenadas, como latitud longitud, la valida,
+
+o sea, dice, esto es la comuna de tanto en este sector,
+
+y ahora lo último que intentamos fue mandar una fotito del pedacito,
+
+donde está el punto, el pedacito acá, entonces dice,
+
+si te quieres ubicar es más o menos como esta dirección.
+
+para los notificadores, la gente de arena.
+
+Listo, eso es lo que hicimos.
+
+Entonces ahí queda la dirección, por lo menos la dirección que se ingresó,
+
+que está en InfoGare, validada.
+
+Me imagino que algo así...
+
+Claro, pero si nosotros hicimos algo así,
+
+la idea es que está en la punta,
+
+no a nivel del back office.
+
+Claro, no tiene mucho sentido que nosotros...
+
+Ahora, quizás lo que yo podría hacer
+
+ahí para facilitar ese trabajo
+
+es que todo este proceso que estoy comentando
+
+se haga como en el back
+
+y a ti te dé una luz verde y una luz roja
+
+dirección válida
+
+de hito para arriba
+
+dirección no válida de hito para abajo
+
+porque al final
+
+claro, cualquiera puede ingresar
+
+el ejecutivo en la punta pueden ingresar lo que sea
+
+y el cliente le puede decir lo que sea
+
+no tiene comprobante, no tiene nada, le ingresó cualquier cosa
+
+pero por lo menos tú vayas a poder validar
+
+que la dirección está en formato válido
+
+o sea que algo
+
+oye, y esa API de Google Maps
+
+¿se contrata?
+
+es pública
+
+es pública
+
+pública
+
+sí
+
+pública gratis
+
+le podés pegar mil veces
+
+y te devuelve
+
+fotos
+
+te devuelve
+
+el
+
+y de hecho
+
+incluso puedes
+
+autocompletarla
+
+es ese nivel
+
+no sé si has visto
+
+de repente
+
+algunos formularios
+
+que tú pones tu dirección
+
+te esperas un poquitito
+
+y te da como
+
+cinco o seis opciones
+
+de direcciones
+
+y te la completa
+
+y después tú le pones
+
+el número
+
+y te la recompleta
+
+y ahí te identifica
+
+el punto que
+
+es
+
+que eso
+
+esto sirve para riesgo
+
+ahí debería llegar
+
+Pero es que sacamos con darnos cuenta que está
+
+que está en nuestro lado.
+
+No, no, vamos a decir, oye, ojo, la dirección no existe.
+
+Está mala.
+
+Eso lo voy a decir.
+
+Claro, ya está firmado.
+
+Ya está firmado.
+
+Claro, pero si es pública, no...
+
+Sí, mira, partamos con qué vamos a variar el formato
+
+que es lo que estamos variando hoy día.
+
+Si lo vamos a después meter esa validación en nuestro lado,
+
+es fantástico.
+
+Ya, ese es el requerimiento y ese es el dolor.
+
+Cheque.
+
+¿Qué sería lo perfecto para ti?
+
+Se valía la punta.
+
+Ah, ya.
+
+Que todo se valía la punta.
+
+Ya, pero...
+
+Que todo el nombre vengan...
+
+Eso te facilita el trabajo.
+
+Sí, porque yo no tengo que revisar nada.
+
+No lo quieres hacer tú, en el fondo.
+
+Claro, yo no tengo que revisar el nombre
+
+si sé que viene del registro civil.
+
+¿Cachai?
+
+Entonces...
+
+¿Y no lo valían la punta?
+
+No.
+
+Entonces, yo te estoy poniendo el caso simple.
+
+Sí, sí, sí.
+
+En el caso del nombre,
+
+el nombre viene desde un servicio.
+
+Pero lo que hemos visto es que lo pueden modificar.
+
+Y lo pueden modificar porque no está la certeza de que sea 100%.
+
+¿De que el nombre esté correcto?
+
+Claro, porque viene de un servicio de SINACOFI y parece que no está en línea en línea en el registro.
+
+Y hoy día la gente se cambia el nombre.
+
+Sí, porque lo comentábamos la vez pasada.
+
+Ahora, lo que yo puedo hacer ahí, que creo que se puede hacer hoy día,
+
+es pegarle un servicio que hay en el registro civil que tú solo validas el nombre.
+
+Con RUT validas un nombre.
+
+pones un RUT
+
+y el registro civil te devuelve un nombre
+
+pues es todo
+
+son datos públicos, una cosa pública
+
+la información de ellos
+
+que se usa por un montón de cosas
+
+pero es que entonces si eso lo voy a dar a la punta
+
+por eso
+
+te lo comento ahora
+
+lo único que validaría yo en ese caso
+
+es que la copia de la cédula
+
+que venga
+
+y eso es el mismo modelo que aplicamos
+
+de OCR
+
+Cualquier cédula.
+
+Claro, eso es OCR, capturar los datos,
+
+va un modelo de IA que te lo identifica
+
+y los palillos.
+
+Si puedo sacar el nombre
+
+desde el registro.
+
+Sí, también se puede.
+
+Y a propósito, ya que sabes
+
+de estos servicios con el registro,
+
+¿tú sabes si está el servicio
+
+disponible del registro
+
+de deudores de mención de cliente?
+
+Porque nosotros ya lo consultamos
+
+en una plataforma,
+
+Pero yo sé que los bancos sí tienen un servicio.
+
+Ahora, entiendo que nosotros como seres humanos sí podemos consultar, ¿verdad?
+
+No, yo entiendo que no.
+
+No se puede.
+
+Está restringido.
+
+Sí, se lo dan solamente a financieros, a personas que tienen que trabajar con esto.
+
+Sí, está restringido.
+
+Ya, pero mira.
+
+Los usuarios pueden usarlo y las instituciones financieras.
+
+Pero ¿sabéis qué?
+
+Nosotros sí tenemos acceso.
+
+Pero no sé cómo. Nosotros sí lo tenemos.
+
+Porque entiendo que cuando van a hacer una incautación, parece, o algo del proceso judicial,
+
+tienen que averiguar si la persona tiene deuda por pensión de alimentos,
+
+porque parece que va primero que nosotros en el pago.
+
+Entonces, como que, oye, ya, sí, está súper, va a pagar, o le vamos a incautar, o no sé, por remate.
+
+No me acuerdo muy bien el proceso.
+
+Están todos contentos y dicen, ah, pero tiene deuda por pensión de alimento.
+
+¿Le puedo averiguar eso?
+
+Dale, la nota de acá va a averiguarlo.
+
+Ya, ya, existiendo estos otros servicios, el Google y el nombre, yo quería de llevarlos a la punta.
+
+O sea, para acotarlo, si yo te ayudo validando información contra lo que tú tienes,
+
+Y que eso se haga de forma automática, está correcto, está correcto, está correcto.
+
+Ahora, si eso no está correcto y tú lo quieres rechazar, súper simple.
+
+Súper simple el rechazo, como no te desgastáis en analizar, ni procesar, ni nada.
+
+No, el nombre no viene correcto según esto, rechazado.
+
+Es que nosotros hacemos eso.
+
+Nosotros hoy día revisamos eso y si el nombre no viene correcto, yo rechazo.
+
+Ya, claro, pero hoy día es de la revisión manual, como decías.
+
+Visual.
+
+No, claro.
+
+Ahora, eso es.
+
+Fluxo
+
+¿Verdad? Contra
+
+Fluxo que tenemos el botón de rechazar
+
+¿Pero contra qué?
+
+¿Contra qué valida?
+
+Bueno, bien
+
+Contra Monaco
+
+Los documentos de Fluxo
+
+O sea, la persona que revisa tiene Monaco abierto
+
+Y tiene el buzón de Fluxo
+
+O sea, revisa el contramónico
+
+Al fondo que cuadra los monos
+
+Claro
+
+Pero los nombres y todo
+
+Lo revisa contra la identidad
+
+que tiene la foto
+
+o sea, en el fondo es
+
+tiene el monaco abierto
+
+extrae los datos del jardín y hace la comparación
+
+saca el dato de la cédula
+
+ven la comparación, tiene el nombre
+
+profesión
+
+me dijo fecha de
+
+vencimiento de la cédula
+
+es verdad
+
+y eso lo han
+
+solo dentro de Fluxu
+
+está bien, sí, aprobado
+
+está mal que hechazado
+
+ya
+
+el mismo modelo que estamos haciendo
+
+toma la imagen
+
+reconoce el carácter
+
+lo identifica
+
+digamos
+
+la inteligencia
+
+ahí está detrás en el proceso como te decía
+
+de que cuando lee los datos de la cédula
+
+los recibe
+
+y va a la IA
+
+y toma todos los datos que leyó
+
+y dice a ver identifica el nombre
+
+está bien, sí, esto es
+
+y te lo devuelve
+
+Ese proceso de ida y vuelta es donde nosotros estamos ahí, donde se aplica la inteligencia artificial.
+
+Bueno, en el reconocimiento de carácter igual es una tecnología interesante.
+
+¿Un poquito más complicado?
+
+No, es más simple.
+
+Porque vas a leer un documento y hay otras cosas.
+
+La guía donde está es que cuando...
+
+Porque lo que te devuelve del reconocimiento de carácter es un chorizo así gigante de texto y número.
+
+Entonces todo eso, nosotros se lo pasamos ahí y le dimos, toma,
+
+identifica cuál es el nombre, el root, la fecha de vencimiento, la profesión,
+
+no sé qué cosa de esto, y cuando lo identifiques, devuélvemelo y ponelo en este formulario.
+
+Y valida que esto está igual a esto.
+
+¿Sí? ¿Está bien? Pasa, listo.
+
+¿Lo entrega como un formato JSON?
+
+El JSON te lo entrega los CRP.
+
+Pero hace un turismo de datos.
+
+Y desordenado, texto, todo junto, los nombres todos juntos, sin espacio,
+
+no sé, los apellidos de repente con formato
+
+porque uno no sé, como que lee
+
+una foto, como que una A
+
+chiquitinta, como una letra media alemana
+
+y lo que hace la I es todo eso
+
+lo traduce a formato
+
+humano nuestro y lo pone en un formulario
+
+en los campos indicados y lo va a leer
+
+todo el proceso que hace
+
+el modelo, lo bueno que ahí va aprendiendo
+
+con el tiempo
+
+entonces, no sé, los apellidos
+
+Muñoz con ñ, no sé si te has dado cuenta
+
+de repente como que alguien no le pone la ñ
+
+y le pone munos,
+
+va a asumir
+
+de que todos los munos
+
+son muños.
+
+Hasta algo por el estilo.
+
+Salvo que después la persona diga
+
+no, no, no,
+
+esa alguien me ha pillado de verdad
+
+es munos.
+
+Nos mata.
+
+Ya.
+
+Entonces,
+
+me voy a quedar con
+
+dos trabajos.
+
+Con tres en realidad.
+
+El primero,
+
+ya que me mandaron
+
+la información de conciliación,
+
+la voy a poner en la plataforma
+
+para poder complementar
+
+y poder presentarse.
+
+¿Ya?
+
+Les pido ahí...
+
+No, ya me mandaron todo.
+
+Solo que queda pendiente un usuario de testing de Fluxo.
+
+¿Ya?
+
+Yo lo consigo.
+
+Listo.
+
+Lo segundo, me imagino que es más importante este tema de la validación
+
+que el tema de pago recuero, ¿no?
+
+Es un pago por terreno y distinto.
+
+No, no, si lo sé, pero ¿qué tema es más importante?
+
+Ya, ok.
+
+Nosotros llegamos primero.
+
+Ya.
+
+No, no, y aparte que parece que ahí habían, como dije,
+
+que habían tomates que se estaban tirando,
+
+entonces la idea es que no haya tanta fricción con los equipos.
+
+Ya, cheque.
+
+Y después veo el tema,
+
+ahora igual el tema de la validación es mucho más fácil.
+
+Sí.
+
+Mucho más fácil.
+
+Sí, bastante agotado.
+
+Sí, ahí más encima que ya tenemos un motor de reconocimiento con validación.
+
+Esto es un poquitito más,
+
+un poquito más de esfuerzo.
+
+Tampoco es mucho, son meses de trabajo.
+
+Nada de lo que estamos hablando son meses de trabajo.
+
+O sea, es muy, muy fácil.
+
+y
+
+¿qué más?
+
+ah, tú me decías que la información
+
+que básicamente la validación
+
+que haces es solo contra
+
+Fluxo, por lo que estoy entendiendo
+
+porque en Mónaco lo que validan son montos
+
+y como que va lo mismo, si el monto viene incorrecto
+
+o igual te importa
+
+que se valide eso
+
+no es relevante, solo la información
+
+de la segunda
+
+parte de la punta, de la pospunta
+
+ya
+
+hoy día se hacen algunas validaciones
+
+el monto
+
+los montos de la cuota, el monto financiado
+
+¿será necesario seguir validando eso?
+
+ahora la Cami me está
+
+diciendo que tenía diferencia de un peso
+
+en un caso
+
+¿y en ese caso se devuelve?
+
+no pasaba, claro, se devuelve
+
+entonces vamos a tener que agregar esa validación
+
+claro, yo lo que le decía a la
+
+Cami
+
+es que
+
+esas validaciones
+
+deben hacerse como más masivas
+
+pero igual tiene que ser previo al curso
+
+sí
+
+ya pero agreguémosla
+
+porque es igual automático
+
+o sea nosotros
+
+hay un número, aquí también hay un número
+
+es el mismo número, bien
+
+son números distintos
+
+un ejemplo de flux
+
+esa es una solicitud
+
+que está pendiente de revisar por parte del equipo
+
+de curso, ya
+
+yo busqué una presión puntual
+
+entonces llega con esta tarea
+
+con este nombre de tarea
+
+ya se le asigna un correlativo
+
+ya
+
+y el fluxo
+
+dependiendo del
+
+y después está el ID de la operación
+
+y después está
+
+esto se puede cambiar
+
+ya esto nosotros lo ajustamos
+
+porque era más fácil
+
+de visualizar
+
+sí, sí, sí
+
+entramos a la solicitud
+
+y aquí están algunos datos
+
+del crédito
+
+que extrae directamente
+
+de Monaco
+
+ya
+
+con Power Automate
+
+hacemos una consulta
+
+y extraemos datos
+
+ya
+
+aquí está la información
+
+del crédito
+
+del ejecutivo
+
+y aquí están los campos
+
+donde deberían venir todos los adjuntos.
+
+Ya.
+
+Entiendo acá, por eso.
+
+Entonces acá, por ejemplo,
+
+viene la cédula.
+
+Ya.
+
+Entonces tenés que leer la cédula.
+
+Claro, leer la cédula.
+
+Leerla como...
+
+Oye, que solo como lo pregunto de Usario.
+
+Pincha, se te levanta la imagen de la cédula
+
+y ¿qué haces?
+
+¿Te memoriza los datos?
+
+Van comparando con la otra pantalla.
+
+Por eso siempre es importante
+
+que trabajes con dos pantallas.
+
+Eso es lo que me imagino.
+
+Tienen dos pantallas,
+
+entonces tienen una foto de la cédula
+
+y la otra ventana de Fluxo.
+
+Claro, sí.
+
+O sea, ¿tienen dos ventanas de Fluxo abiertas?
+
+Tienen una ventana de Fluxo.
+
+¿Ya?
+
+¿Y la otra ventana que tienen?
+
+Y la otra en Monaco.
+
+¿Y contra qué?
+
+¿Y la cédula contra qué la valían?
+
+La cédula contra el pagaré.
+
+Contra el pagaré.
+
+Contra el pagaré.
+
+¿Y el pagaré cómo lo tienen?
+
+Que también está acá.
+
+El mandato de suscripción.
+
+Está ahí.
+
+¿Un PDF?
+
+El mandato no viene acá,
+
+pero el mandato está en otro lado, ¿no?
+
+Es un PDF, ¿no?
+
+Sí, lo descargan de otro lado.
+
+De Mónaco.
+
+De Mónaco.
+
+Claro, van a Mónaco, lo descargan y comparan con la cédula.
+
+Pero tienen abierto Mónaco.
+
+Tienen abierto Mónaco.
+
+Y ahí en el fondo ven la cédula y van a Mónaco, descargan, dicen sí, sí, sí, sí, sí.
+
+Y después en FLOG se ponen check.
+
+Aquí no tengo el permiso, pero aquí tienen los botones.
+
+Debe avanzar o rechazar.
+
+Si se rechaza, se devuelve a la bandeja del ejecutivo.
+
+Ya.
+
+Entonces, más en detalle.
+
+La primera validación es la información que está en la cédula,
+
+que se extrae de la cédula, es la misma información que está en fluxo.
+
+Esa es la primera validación. Está todo correcto.
+
+El nombre es el nombre de la cédula.
+
+Bien.
+
+¿Y esta validación que dices tú contra el pagaré de Mónaco?
+
+Acá igual adjuntan el pagaré.
+
+Creo que cuando firman físico adjuntan el pagaré.
+
+Pero ahí lo que no entiendo, Luzma, lo que no entiendo de esto es
+
+si está el pagaré, ¿todavía no está cursado?
+
+¿O sí ya está cursado ya?
+
+Ah, ya. O sea, todavía no hay
+
+curso.
+
+Ah, ya.
+
+Ya, ya, ok.
+
+Ya, perfecto.
+
+Sí, sí, sí, perfecto.
+
+En este caso no hay pagaré porque hay un mandato.
+
+Claro. O sea, si el mandato
+
+está en
+
+Mónaco
+
+y la persona lo tiene abierto en la otra ventana
+
+ya, lo tiene abierto en la otra
+
+ventana, lo descarga, lo verá,
+
+no sé, algo, lo que necesita que lo que desea la Luma es que valíe la información de la cédula
+
+con cómo está firmado el mandato o algo, el pagaré, lo que sea, y diga está correcto, check, pasó.
+
+Ah, ya, ok. O sea, hay como dos o tres validaciones que tiene que hacer en realidad.
+
+Sí.
+
+Que la profesión no sea de mentira, que el nombre sea correcto, que el root esté correcto, numérico,
+
+y eso que esté contra la información de Fluxo, y después que la información de la cédula,
+
+que ya está validada contra Fluxo, la vigencia, todo eso, esté validada contra el pagaré,
+
+contra el mandato, lo que sea,
+
+y con eso, todo cualidad,
+
+listo, perfecto.
+
+Súper.
+
+Ya, me queda súper, súper claro.
+
+Ya, súper.
+
+Vamos entonces, tenemos cosas que hacer.
+
+¿Cómo está?
+
+Sí.
+
+Nosotros estuvimos súper entretenidos
+
+en la semana tratando de
+
+ver cómo resolvíamos el tema
+
+del pago-recupero.
+
+Ah, ya vale.
+
+Sí.
+
+Igual, nosotros somos, como te decía,
+
+somos empresas distintas,
+
+nosotros estamos sentados
+
+en otro lado,
+
+pero yo vi cómo le brillaron los ojos
+
+cuando dijimos,
+
+oye, mira,
+
+podríamos hacer esto,
+
+cuéntame cómo es,
+
+¿por qué están haciendo esto?
+
+No,
+
+¿te acuerdas de la reunión
+
+que me invitaste?
+
+Oh,
+
+estaría perfecto,
+
+nos facilita,
+
+el trabajo sería ideal
+
+para nosotros,
+
+y dije,
+
+ah,
+
+espérate,
+
+debemos ser honestos,
+
+no son ustedes los que,
+
+no son mis clientes ustedes,
+
+somos compañeros de puesto
+
+de ustedes,
+
+no son mis clientes,
+
+ya,
+
+si de,
+
+por,
+
+¿cómo se llama?
+
+por defecto,
+
+les podemos ayudar,
+
+ya,
+
+todos felices,
+
+pero yo estoy haciendo
+
+para el equipo de Tanner
+
+o sea
+
+tienen que pensar en eso
+
+ahora si ellos
+
+disponibilizan
+
+una herramienta
+
+para que ustedes
+
+tengan menos fricción
+
+ya que bueno
+
+todos ganamos
+
+win win
+
+win win
+
+para todo
+
+pero esto tiene foco
+
+en ellos primero
+
+como en la
+
+automatización del post
+
+del back
+
+y después en el front
+
+ya ustedes pueden subirlo
+
+de hecho yo me haya puesto
+
+más creativo
+
+por eso te pregunté
+
+con el tema
+
+de lo masivo
+
+ahí nos pusimos
+
+más creativos
+
+nosotros dijimos
+
+oye si son pagos masivos
+
+pensamos así como que
+
+no tú te sientes
+
+un día, una hora al día y dice: "ya, voy a conciliar, voy a subir todos los pagos".
+
+No, parece que no pasa eso, así que...
+
+Ya, super.
+
+- Gracias, Simón.
+
+- Gracias, el tema tenemos de un con...
+

@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tanner Pagos | Cuadratura y conciliacion</title>
+    <meta
+      name="description"
+      content="Prototipo funcional de conciliacion Tanner con busqueda de cliente, acuerdo, OCR, validacion y trazabilidad."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Courier+Prime:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="#" aria-label="Tanner Pagos">
+          <img src="./logo.svg" alt="Tanner" class="brand__logo" />
+          <div class="brand__copy">
+            <strong>Tanner Pagos</strong>
+            <span>Cuadratura asistida</span>
+          </div>
+        </a>
+
+        <nav class="sidebar-nav" aria-label="Modulos">
+          <a class="sidebar-nav__item is-active" href="#"><span>01</span><span>Conciliacion</span></a>
+          <a class="sidebar-nav__item" href="#"><span>02</span><span>Acuerdos</span></a>
+          <a class="sidebar-nav__item" href="#"><span>03</span><span>OCR</span></a>
+          <a class="sidebar-nav__item" href="#"><span>04</span><span>Validacion</span></a>
+          <a class="sidebar-nav__item" href="#"><span>05</span><span>Excepciones</span></a>
+          <a class="sidebar-nav__item" href="#"><span>06</span><span>Auditoria</span></a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="sidebar-footer__card">
+            <span class="eyebrow">Estado hoy</span>
+            <strong id="sidebarStatus">3 casos listos</strong>
+            <p id="sidebarSubtitle">1 pendiente de excepcion y 2 con cuadratura exacta.</p>
+          </div>
+          <div class="sidebar-footer__stats">
+            <div>
+              <span>Procesados</span>
+              <strong id="sidebarProcessed">24</strong>
+            </div>
+            <div>
+              <span>En cola</span>
+              <strong id="sidebarPending">6</strong>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div class="topbar__copy">
+            <span class="eyebrow">Flujo de recupero castigo / conciliacion bancaria</span>
+            <h1>Cuadratura guiada de pagos Tanner</h1>
+            <p>
+              El prototipo usa M\u00f3naco como fuente de verdad, valida comprobantes, compara montos y deriva
+              excepciones cuando no hay match.
+            </p>
+          </div>
+
+          <div class="topbar__actions">
+            <button class="btn btn--ghost" id="downloadReportBtn" type="button">Descargar resumen</button>
+            <button class="btn btn--primary" id="sendFluxuBtn" type="button">Enviar a Fluxu</button>
+          </div>
+        </header>
+
+        <section class="hero">
+          <div class="hero__panel hero__panel--wide">
+            <div class="hero__label">Caso activo</div>
+            <div class="hero__title" id="activeCustomerName">Inversiones Globales S.A.</div>
+            <div class="hero__meta">
+              <span id="activeCustomerRut">RUT 76.452.XXX-X</span>
+              <span id="activeCustomerOperation">Operacion OP-20418</span>
+              <span id="activeCustomerCampaign">Recupero castigo</span>
+            </div>
+            <div class="hero__chips" id="heroChips"></div>
+          </div>
+
+          <div class="hero__panel">
+            <div class="metric">
+              <span>Monto esperado</span>
+              <strong id="metricExpected">$3.021.000</strong>
+            </div>
+            <div class="metric">
+              <span>Transferido</span>
+              <strong id="metricTransferred">$3.021.000</strong>
+            </div>
+          </div>
+
+          <div class="hero__panel">
+            <div class="metric">
+              <span>Estado</span>
+              <strong id="metricState">Cuadrado</strong>
+            </div>
+            <div class="metric">
+              <span>Dias de atraso</span>
+              <strong id="metricDelay">0 dias</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid grid--customers">
+          <article class="panel panel--search">
+            <div class="panel__head">
+              <div>
+                <span class="eyebrow">Busqueda</span>
+                <h2>Selecciona un cliente o caso</h2>
+              </div>
+
+              <label class="search">
+                <span aria-hidden="true">Q</span>
+                <input id="customerSearch" type="search" placeholder="RUT, operacion, nombre, cartera..." />
+              </label>
+            </div>
+
+            <div class="customer-list" id="customerList"></div>
+          </article>
+
+          <article class="panel panel--snapshot">
+            <div class="panel__head">
+              <div>
+                <span class="eyebrow">Fuente de verdad</span>
+                <h2>Snapshot Monaco</h2>
+              </div>
+              <span class="status-pill status-pill--info" id="monacoRefresh">Actualizado hace unos segundos</span>
+            </div>
+
+            <div class="snapshot-grid">
+              <div class="snapshot-card snapshot-card--accent">
+                <span>Deuda capital</span>
+                <strong id="snapshotCapital">$2.860.000</strong>
+              </div>
+              <div class="snapshot-card">
+                <span>Interes moratorio</span>
+                <strong id="snapshotMoratory">$121.000</strong>
+              </div>
+              <div class="snapshot-card">
+                <span>Gasto cobranza</span>
+                <strong id="snapshotFees">$40.000</strong>
+              </div>
+              <div class="snapshot-card">
+                <span>Total exigible</span>
+                <strong id="snapshotTotal">$3.021.000</strong>
+              </div>
+            </div>
+
+            <div class="detail-list">
+              <div><span>Ejecutivo</span><strong id="activeCustomerExecutive">Mariana Soto</strong></div>
+              <div><span>Cartera</span><strong id="activeCustomerPortfolio">Phoenix</strong></div>
+              <div><span>Canal</span><strong id="activeCustomerChannel">WhatsApp / llamada</strong></div>
+              <div><span>Vencimiento</span><strong id="activeCustomerDueDate">10 Jul 2026</strong></div>
+            </div>
+          </article>
+        </section>
+
+        <section class="panel panel--stage">
+          <div class="panel__head">
+            <div>
+              <span class="eyebrow">Flujo</span>
+              <h2>Etapas del caso</h2>
+            </div>
+            <span class="status-pill status-pill--warning" id="workflowHint">Pendiente de validacion</span>
+          </div>
+          <div class="stage-rail" id="stageRail"></div>
+        </section>
+
+        <section class="grid grid--work">
+          <article class="panel panel--agreement">
+            <div class="panel__head">
+              <div>
+                <span class="eyebrow">Acuerdo</span>
+                <h2>Seleccion de cuotas y monto objetivo</h2>
+              </div>
+              <label class="inline-control">
+                <span>Monto transferido</span>
+                <input id="transferAmount" type="number" min="0" step="1000" />
+              </label>
+            </div>
+
+            <div class="agreement-summary">
+              <label class="inline-control">
+                <span>Fecha compromiso</span>
+                <input id="commitmentDate" type="date" />
+              </label>
+              <label class="inline-control">
+                <span>Fecha pago</span>
+                <input id="paymentDate" type="date" />
+              </label>
+              <label class="inline-control">
+                <span>Tolerancia</span>
+                <input id="toleranceAmount" type="number" min="0" step="1000" />
+              </label>
+              <div class="totals">
+                <div>
+                  <span>Seleccionado</span>
+                  <strong id="selectedAmount">$0</strong>
+                </div>
+                <div>
+                  <span>Interes extra</span>
+                  <strong id="lateInterest">$0</strong>
+                </div>
+                <div>
+                  <span>Esperado</span>
+                  <strong id="expectedTotal">$0</strong>
+                </div>
+                <div>
+                  <span>Diferencia</span>
+                  <strong id="differenceTotal">$0</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="table" aria-label="Cuotas seleccionables">
+                <thead>
+                  <tr>
+                    <th><input id="toggleAllInstallments" type="checkbox" aria-label="Seleccionar todas las cuotas" /></th>
+                    <th>Cuota</th>
+                    <th>Vencimiento</th>
+                    <th>Capital</th>
+                    <th>Moratorio</th>
+                    <th>Gasto</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody id="installmentBody"></tbody>
+              </table>
+            </div>
+
+            <div class="action-row">
+              <button class="btn btn--ghost" id="saveDraftBtn" type="button">Guardar borrador</button>
+              <button class="btn btn--ghost" id="createAgreementBtn" type="button">Crear acuerdo</button>
+              <button class="btn btn--primary" id="markCartolaBtn" type="button">Marcar cartola</button>
+            </div>
+          </article>
+
+          <aside class="stack">
+            <article class="panel panel--evidence">
+              <div class="panel__head">
+                <div>
+                  <span class="eyebrow">Evidencia</span>
+                  <h2>Comprobante y OCR</h2>
+                </div>
+                <span class="status-pill status-pill--success" id="evidenceState">OCR listo</span>
+              </div>
+
+              <label class="dropzone" for="evidenceInput">
+                <input id="evidenceInput" type="file" multiple accept="image/*,application/pdf" hidden />
+                <strong>Sube comprobante, cartola o PDF</strong>
+                <span>Arrastra archivos o haz clic para agregar evidencia</span>
+              </label>
+
+              <div class="file-list" id="fileList"></div>
+
+              <div class="ocr-grid">
+                <label class="inline-control">
+                  <span>Archivo OCR</span>
+                  <input id="ocrFileName" type="text" />
+                </label>
+                <label class="inline-control">
+                  <span>ID transferencia</span>
+                  <input id="ocrTransferId" type="text" />
+                </label>
+                <label class="inline-control">
+                  <span>Remitente</span>
+                  <input id="ocrSenderName" type="text" />
+                </label>
+                <label class="inline-control">
+                  <span>RUT remitente</span>
+                  <input id="ocrSenderRut" type="text" />
+                </label>
+                <label class="inline-control">
+                  <span>Banco origen</span>
+                  <input id="ocrBankOrigin" type="text" />
+                </label>
+                <label class="inline-control">
+                  <span>Banco destino</span>
+                  <input id="ocrBankDest" type="text" />
+                </label>
+                <label class="inline-control">
+                  <span>Fecha OCR</span>
+                  <input id="ocrDate" type="date" />
+                </label>
+                <label class="inline-control">
+                  <span>Monto OCR</span>
+                  <input id="ocrAmount" type="number" min="0" step="1000" />
+                </label>
+                <label class="inline-control inline-control--wide">
+                  <span>Glosa</span>
+                  <input id="ocrNote" type="text" />
+                </label>
+              </div>
+            </article>
+
+            <article class="panel panel--validation">
+              <div class="panel__head">
+                <div>
+                  <span class="eyebrow">Validacion</span>
+                  <h2>Match operativo</h2>
+                </div>
+                <span class="status-pill" id="validationState">En revisión</span>
+              </div>
+
+              <div class="checklist" id="validationChecklist"></div>
+
+              <div class="validation-footer">
+                <button class="btn btn--ghost" id="openExceptionBtn" type="button">Derivar excepcion</button>
+                <button class="btn btn--primary" id="approveBtn" type="button">Aprobar y enviar</button>
+              </div>
+            </article>
+          </aside>
+        </section>
+
+        <section class="grid grid--bottom">
+          <article class="panel">
+            <div class="panel__head">
+              <div>
+                <span class="eyebrow">Excepciones</span>
+                <h2>Bandeja de observaciones</h2>
+              </div>
+              <span class="status-pill status-pill--danger" id="exceptionCount">2 abiertas</span>
+            </div>
+            <div class="exception-list" id="exceptionList"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel__head">
+              <div>
+                <span class="eyebrow">Auditoria</span>
+                <h2>Trazabilidad del caso</h2>
+              </div>
+              <button class="btn btn--ghost" id="addAuditBtn" type="button">Registrar nota</button>
+            </div>
+            <div class="audit-timeline" id="auditTimeline"></div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+    <script src="./app.js"></script>
+  </body>
+</html>

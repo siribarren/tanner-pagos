@@ -1,0 +1,110 @@
+{
+  "midnight-blue": {
+    "value": "#001E3D",
+    "name": "Midnight Blue"
+  },
+  "midnight-blue-1": {
+    "value": "#002080",
+    "name": "Midnight Blue"
+  },
+  "royal-blue": {
+    "value": "#005CB9",
+    "name": "Royal Blue"
+  },
+  "medium-blue": {
+    "value": "#023AE0",
+    "name": "Medium Blue"
+  },
+  "sea-green": {
+    "value": "#047857",
+    "name": "Sea Green"
+  },
+  "teal": {
+    "value": "#075985",
+    "name": "Teal"
+  },
+  "sea-green-1": {
+    "value": "#16A34A",
+    "name": "Sea Green"
+  },
+  "black": {
+    "value": "#222222",
+    "name": "Black"
+  },
+  "medium-turquoise": {
+    "value": "#4DD2FF",
+    "name": "Medium Turquoise"
+  },
+  "slate-gray": {
+    "value": "#6B7280",
+    "name": "Slate Gray"
+  },
+  "pale-turquoise": {
+    "value": "#A7F3D0",
+    "name": "Pale Turquoise"
+  },
+  "sienna": {
+    "value": "#B45309",
+    "name": "Sienna"
+  },
+  "pale-turquoise-1": {
+    "value": "#BAE6FD",
+    "name": "Pale Turquoise"
+  },
+  "crimson": {
+    "value": "#BE123C",
+    "name": "Crimson"
+  },
+  "chocolate": {
+    "value": "#D97706",
+    "name": "Chocolate"
+  },
+  "lavender": {
+    "value": "#E2E8F0",
+    "name": "Lavender"
+  },
+  "lavender-1": {
+    "value": "#E5E7EB",
+    "name": "Lavender"
+  },
+  "honeydew": {
+    "value": "#ECFDF5",
+    "name": "Honeydew"
+  },
+  "alice-blue": {
+    "value": "#EEF3F9",
+    "name": "Alice Blue"
+  },
+  "alice-blue-1": {
+    "value": "#F0F9FF",
+    "name": "Alice Blue"
+  },
+  "white-smoke": {
+    "value": "#F1F5F9",
+    "name": "White Smoke"
+  },
+  "ghost-white": {
+    "value": "#F8FAFC",
+    "name": "Ghost White"
+  },
+  "ghost-white-1": {
+    "value": "#F8FBFF",
+    "name": "Ghost White"
+  },
+  "khaki": {
+    "value": "#FDE68A",
+    "name": "Khaki"
+  },
+  "pink": {
+    "value": "#FECDD3",
+    "name": "Pink"
+  },
+  "lavender-blush": {
+    "value": "#FFF1F2",
+    "name": "Lavender Blush"
+  },
+  "floral-white": {
+    "value": "#FFFBEB",
+    "name": "Floral White"
+  }
+}
