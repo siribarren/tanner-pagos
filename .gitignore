@@ -6,3 +6,8 @@ dist/
 .env.local
 .github-token
 .env-desarrollo
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+node_modules/
