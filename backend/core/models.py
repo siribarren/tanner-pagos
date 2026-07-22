@@ -16,11 +16,9 @@ class CRMFila(models.Model):
     fecha_contacto = models.DateField(null=True)
     fecha_compromiso = models.DateField(null=True)
     fecha_pago = models.DateField(null=True)
-    estado = models.CharField(max_length=20, choices=EstadoCRM.choices, default=EstadoCRM.SIN_COMPROMISO)
+    estado = models.CharField(max_length=20, choices=EstadoCRM.choices, null=True)
     pago = models.CharField(max_length=20, choices=TipoPago, null=True)
     situacion = models.CharField(max_length=20, choices=Situacion, null=True)
-    cuotas = models.IntegerField()
-    monto = models.IntegerField()
 
     class Meta:
         db_table = 'crm_fila'
