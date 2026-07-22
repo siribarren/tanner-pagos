@@ -9,7 +9,8 @@ export type Screen =
   | "matching"
   | "cuadratura"
   | "excepciones"
-  | "auditoria";
+  | "auditoria"
+  | "sincronizacion";
 
 export type Rol = "ejecutivo" | "supervisor";
 

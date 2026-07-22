@@ -8,11 +8,11 @@ import logoSidebarUrl from "../assets/logo.svg";
 
 const NAV: Array<{ key: string; label: string; screen?: Screen; roles: Rol[] }> = [
   { key: "panel",         label: "Mi Escritorio", screen: "panel",         roles: ["ejecutivo", "supervisor"] },
-  { key: "compromisos",   label: "Compromisos",   screen: "buscar",        roles: ["ejecutivo"] },
-  { key: "pagos",         label: "Pagos",         screen: "pagos",         roles: ["ejecutivo"] },
+  { key: "compromisos",   label: "Mis Compromisos", screen: "buscar",        roles: ["ejecutivo"] },
+  { key: "pagos",         label: "Mis Pagos",       screen: "pagos",         roles: ["ejecutivo"] },
   { key: "excepciones",   label: "Excepciones",   screen: "excepciones",   roles: ["supervisor"] },
   { key: "auditoria",     label: "Auditoría",     screen: "auditoria",     roles: ["supervisor"] },
-  { key: "sincronizacion",label: "Sincronización",                        roles: ["ejecutivo", "supervisor"] },
+  { key: "sincronizacion",label: "Sincronización", screen: "sincronizacion", roles: ["ejecutivo", "supervisor"] },
   // Fuera de alcance de este prototipo (no forman parte de las 8 pantallas
   // requeridas en el documento de requerimientos; Configuración corresponde
   // al rol Administrador, no incluido aquí). Se mantienen definidas para no
@@ -33,6 +33,7 @@ export function Shell({ screen, rol, navigate, onChangeRol, onLogout, children }
     screen === "pagos" || screen === "comprobante" || screen === "matching" || screen === "cuadratura" ? "pagos" :
     screen === "excepciones" ? "excepciones" :
     screen === "auditoria" ? "auditoria" :
+    screen === "sincronizacion" ? "sincronizacion" :
     "panel";
 
   const visibleNav = NAV.filter((item) => item.roles.includes(rol));

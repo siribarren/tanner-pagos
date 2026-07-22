@@ -69,4 +69,7 @@ export const STATUS: Record<string, [string, string, string]> = {
   OBSERVADO:               [C.red,   C.redSoft,   "Observado"],
   ENVIADO_APLICACION:      [C.blue,  C.blueSoft,  "Enviado a aplicación"],
   APLICADO:                [C.green, C.greenSoft, "Aplicado"],
+  // Historial de sincronizaciones contra Mónaco/Tubo/Flokzu.
+  COMPLETADA:              [C.green, C.greenSoft, "Completada"],
+  FALLIDA:                 [C.red,   C.redSoft,   "Fallida"],
 };

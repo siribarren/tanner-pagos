@@ -5,7 +5,10 @@ import { C, FONT_UI, STATUS } from "./theme";
 // `width` es opcional: fija el ancho del chip (para columnas donde todos los
 // chips deben verse del mismo tamaño aunque el texto varíe). Sin `width`, el
 // chip se sigue autoajustando al texto como siempre.
-export function Badge({ s, width }: { s: string; width?: number | string }) {
+// `wrap`: permite que el texto pase a una segunda línea en vez de forzar
+// nowrap — útil en columnas angostas con labels largos (p. ej. "Pago validado
+// con observaciones") para evitar que el chip empuje el ancho de la tabla.
+export function Badge({ s, width, wrap }: { s: string; width?: number | string; wrap?: boolean }) {
   const [c, bg, label] = STATUS[s] ?? [C.muted, "rgba(107,114,128,0.1)", s];
   return (
     <span style={{
@@ -13,7 +16,9 @@ export function Badge({ s, width }: { s: string; width?: number | string }) {
       justifyContent: width ? "center" : undefined,
       padding: "4px 10px", borderRadius: "999px",
       fontSize: "11px", fontWeight: 700,
-      color: c, background: bg, whiteSpace: "nowrap",
+      color: c, background: bg, whiteSpace: wrap ? "normal" : "nowrap",
+      textAlign: wrap ? "center" : undefined,
+      lineHeight: wrap ? 1.3 : undefined,
       width, boxSizing: width ? "border-box" : undefined,
     }}>{label}</span>
   );

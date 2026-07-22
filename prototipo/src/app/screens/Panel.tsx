@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { C, FONT_UI, clp } from "../theme";
-import { CARTERA_EJECUTIVO, type CarteraItem } from "../data";
+import { ABONO_TRANSFERENCIA_3287612, COMPROMISOS_DETALLE, type CarteraItem } from "../data";
 import { CarteraTable } from "../CarteraTable";
 import type { DetalleTipo, Rol, Screen } from "../types";
 import { Badge, Card, GhostBtn, HeroHeader, SolidBtn, updatedAtLabel } from "../ui";
@@ -7,34 +8,41 @@ import { Badge, Card, GhostBtn, HeroHeader, SolidBtn, updatedAtLabel } from "../
 // ════════════════════════════════════════════════════════════════════════════════
 // PANEL — contenido según rol: "mi día" (Ejecutivo) o Dashboard operativo (Supervisor)
 // ════════════════════════════════════════════════════════════════════════════════
-export function Panel({ rol, navigate, onSync, abrirDetalle, abrirCompromiso }: {
-  rol: Rol; navigate: (s: Screen) => void; onSync: () => void;
+export function Panel({ rol, cartera, navigate, onSync, abrirDetalle, abrirCompromiso, irACompromisos, irAPagos }: {
+  rol: Rol; cartera: CarteraItem[]; navigate: (s: Screen) => void; onSync: () => void;
   abrirDetalle: (tipo: DetalleTipo, idCredito: string, solcob?: string | null) => void;
   abrirCompromiso: (item: CarteraItem) => void;
+  irACompromisos: (situacion: string) => void;
+  irAPagos: (estado: string) => void;
 }) {
   return rol === "supervisor"
     ? <DashboardOperativo navigate={navigate} onSync={onSync} />
-    : <MiDia navigate={navigate} onSync={onSync} abrirDetalle={abrirDetalle} abrirCompromiso={abrirCompromiso} />;
+    : <MiDia cartera={cartera} navigate={navigate} onSync={onSync} abrirDetalle={abrirDetalle} abrirCompromiso={abrirCompromiso} irACompromisos={irACompromisos} irAPagos={irAPagos} />;
 }
 
 // ── Vista Ejecutivo: "Mi día" ────────────────────────────────────────────────────
-function MiDia({ navigate, onSync, abrirDetalle, abrirCompromiso }: {
-  navigate: (s: Screen) => void; onSync: () => void;
+function MiDia({ cartera, navigate, onSync, abrirDetalle, abrirCompromiso, irACompromisos, irAPagos }: {
+  cartera: CarteraItem[]; navigate: (s: Screen) => void; onSync: () => void;
   abrirDetalle: (tipo: DetalleTipo, idCredito: string, solcob?: string | null) => void;
   abrirCompromiso: (item: CarteraItem) => void;
+  irACompromisos: (situacion: string) => void;
+  irAPagos: (estado: string) => void;
 }) {
-  const tareas = [
-    { label: "Compromisos pendientes de pago", val: 7,  color: C.amber, bg: C.amberSoft, urgente: false },
-    { label: "Compromisos por validar",        val: 3,  color: C.blue,  bg: C.blueSoft,  urgente: false },
-    { label: "Pagos rechazados",               val: 2,  color: C.red,   bg: C.redSoft,   urgente: true  },
-    { label: "Pagos aprobados",                val: 5,  color: C.green, bg: C.greenSoft, urgente: false },
+  // Arriba: estado de los compromisos vigentes con el cliente. Abajo: estado de
+  // los pagos ya enviados a autorización (Flokzu) para esos compromisos. Cada
+  // card lleva a su listado ya filtrado: las de arriba apuntan a Compromisos
+  // filtrado por Situación, las de abajo a Pagos filtrado por Estado.
+  // Mismos colores que usa el Badge para estos estados (STATUS en theme.ts):
+  // Comprometido = azul, Pago pendiente de validar = naranjo.
+  const tareasArriba = [
+    { label: "Pagos comprometidos",           val: 7,  color: C.blue,  bg: C.blueSoft,  urgente: false, onClick: () => irACompromisos("SITUACION_PENDIENTE"), hero: true },
+    { label: "Pagos pendientes de validar",   val: 3,  color: C.amber, bg: C.amberSoft, urgente: false, onClick: () => irACompromisos("SITUACION_PENDIENTE") },
   ];
-
-  // Cartera del ejecutivo: Sin compromiso (nunca negociado, o venció sin pago) vs.
-  // Comprometido (acuerdo vigente, con fecha, Pago y Situación). Se deriva de
-  // CARTERA_EJECUTIVO (data.ts), fuente única de verdad compartida con la ficha
-  // de detalle, para que ambas pantallas nunca queden desincronizadas.
-  const cartera = CARTERA_EJECUTIVO;
+  const tareasAbajo = [
+    { label: "Pagos enviados rechazados",     val: 2,  color: C.red,   bg: C.redSoft,   urgente: true,  onClick: () => irAPagos("RECHAZADA") },
+    { label: "Pagos enviados pendientes",     val: 2,  color: C.amber, bg: C.amberSoft, urgente: false, onClick: () => irAPagos("PENDIENTE") },
+    { label: "Pagos enviados aprobados",      val: 5,  color: C.green, bg: C.greenSoft, urgente: false, onClick: () => irAPagos("APROBADA") },
+  ];
 
   // Una vez el pago se envía a autorización a Tanner (Flokzu), se le asigna un
   // código de solicitud de cobranza fijo: alfanumérico "SOLCOB-" + 5 dígitos.
@@ -43,11 +51,13 @@ function MiDia({ navigate, onSync, abrirDetalle, abrirCompromiso }: {
   // Pamela y Claudia no han pagado nada aún (Pendiente); Rodrigo envió su abono
   // parcial real de $65.800 (Aprobada, con observaciones); Jorge envió $327.000
   // pero fue Rechazada, por eso su compromiso volvió a "Pendiente" en la cartera.
+  const [hoveredTarea, setHoveredTarea] = useState<string | null>(null);
+
   const pagosEnviados = [
-    { id: "SOLCOB-84213", idCredito: "3350049", rut: "15.221.775-7", monto: 209200, fecha: "09-Julio", status: "PENDIENTE" },
-    { id: "SOLCOB-84214", idCredito: "3287612", rut: "12.344.892-3", monto: 65800,  fecha: "09-Julio", status: "APROBADA" },
-    { id: "SOLCOB-84215", idCredito: "2941087", rut: "9.876.543-2",  monto: 108500, fecha: "08-Julio", status: "PENDIENTE" },
-    { id: "SOLCOB-84216", idCredito: "3102456", rut: "17.654.321-K", monto: 327000, fecha: "08-Julio", status: "RECHAZADA" },
+    { id: "SOLCOB-84213", idCredito: "3350049", rut: "15.221.775-7", monto: COMPROMISOS_DETALLE["3350049"].montoComprometido, fecha: "09-Julio", status: "PENDIENTE" },
+    { id: "SOLCOB-84214", idCredito: "3287612", rut: "12.344.892-3", monto: ABONO_TRANSFERENCIA_3287612,                      fecha: "09-Julio", status: "APROBADA" },
+    { id: "SOLCOB-84215", idCredito: "2941087", rut: "9.876.543-2",  monto: COMPROMISOS_DETALLE["2941087"].montoComprometido, fecha: "08-Julio", status: "PENDIENTE" },
+    { id: "SOLCOB-84216", idCredito: "3102456", rut: "17.654.321-K", monto: COMPROMISOS_DETALLE["3102456"].montoComprometido, fecha: "08-Julio", status: "RECHAZADA" },
   ];
 
   return (
@@ -60,16 +70,15 @@ function MiDia({ navigate, onSync, abrirDetalle, abrirCompromiso }: {
         </>}
       />
 
-      {/* KPI row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,minmax(0,1fr))", gap: "12px", marginBottom: "26px" }}>
-        {tareas.map(t => (
-          <Card key={t.label} style={{ padding: "18px 18px 16px", minHeight: "124px" }}>
-            <div style={{ fontSize: "27px", fontWeight: 800, color: t.color, fontFamily: FONT_UI, letterSpacing: "-0.05em" }}>{t.val}</div>
-            <div style={{ marginTop: "10px", fontSize: "12px", fontWeight: 600, color: C.muted, lineHeight: 1.35 }}>{t.label}</div>
-            {t.urgente && (
-              <div style={{ marginTop: "10px", fontSize: "11px", fontWeight: 700, color: C.red }}>⚠ Requieren atención</div>
-            )}
-          </Card>
+      {/* KPI rows: arriba (compromisos) 2 cards, abajo (pagos enviados) 3 cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: "12px", marginBottom: "12px" }}>
+        {tareasArriba.map(t => (
+          <TareaCard key={t.label} t={t} hovered={hoveredTarea === t.label} onHover={setHoveredTarea} />
+        ))}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: "12px", marginBottom: "26px" }}>
+        {tareasAbajo.map(t => (
+          <TareaCard key={t.label} t={t} hovered={hoveredTarea === t.label} onHover={setHoveredTarea} />
         ))}
       </div>
 
@@ -129,6 +138,49 @@ function MiDia({ navigate, onSync, abrirDetalle, abrirCompromiso }: {
             </tbody>
           </table>
         </div>
+      </Card>
+    </div>
+  );
+}
+
+type Tarea = { label: string; val: number; color: string; bg: string; urgente: boolean; onClick: () => void; hero?: boolean };
+
+// Card "hero" — mismo tratamiento que la card "Monto conciliado" del proyecto
+// tanner-ocr: fondo degradé navy → azul con texto blanco, en vez del fondo
+// blanco + número de color que usan el resto de las cards de esta fila.
+function TareaCard({ t, hovered, onHover }: { t: Tarea; hovered: boolean; onHover: (label: string | null) => void }) {
+  return (
+    <div
+      onClick={t.onClick}
+      onMouseEnter={() => onHover(t.label)}
+      onMouseLeave={() => onHover(null)}
+      role="button"
+      tabIndex={0}
+      style={{ cursor: "pointer" }}
+    >
+      <Card style={{
+        padding: "20px 20px 18px",
+        minHeight: "132px",
+        ...(t.hero
+          ? {
+              background: `linear-gradient(135deg, ${C.navy} 0%, ${C.blue} 100%)`,
+              border: `1px solid ${C.navy}`,
+              boxShadow: hovered ? "0 16px 32px rgba(0,30,61,0.28)" : "0 10px 24px rgba(0,30,61,0.18)",
+              transform: hovered ? "translateY(-3px)" : "none",
+              transition: "transform 160ms ease, box-shadow 160ms ease",
+            }
+          : {
+              borderColor: hovered ? t.color : C.border,
+              boxShadow: hovered ? "0 16px 32px rgba(0,30,61,0.12)" : "0 10px 24px rgba(0,30,61,0.05)",
+              transform: hovered ? "translateY(-3px)" : "none",
+              transition: "transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease",
+            }),
+      }}>
+        <div style={{ fontSize: "34px", fontWeight: 800, color: t.hero ? "#fff" : t.color, fontFamily: FONT_UI, letterSpacing: "-0.05em" }}>{t.val}</div>
+        <div style={{ marginTop: "10px", fontSize: "14px", fontWeight: 600, color: t.hero ? "rgba(255,255,255,0.75)" : C.muted, lineHeight: 1.35 }}>{t.label}</div>
+        {t.urgente && (
+          <div style={{ marginTop: "10px", fontSize: "12px", fontWeight: 700, color: C.red }}>⚠ Requieren atención</div>
+        )}
       </Card>
     </div>
   );

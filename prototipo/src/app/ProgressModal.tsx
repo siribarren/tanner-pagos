@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlertCircle, AlertTriangle, Check, Clock } from "lucide-react";
 import { C } from "./theme";
 import type { SyncMode } from "./types";
@@ -28,6 +28,7 @@ export function ProgressModal({
   onClose,
   onRetry,
   onSuccess,
+  onError,
   totalSeconds: totalSecondsProp,
 }: {
   open: boolean;
@@ -40,6 +41,8 @@ export function ProgressModal({
   onRetry: () => void;
   /** Se dispara una vez, en el instante en que el proceso termina con éxito. */
   onSuccess?: () => void;
+  /** Se dispara una vez, en el instante en que el proceso falla. */
+  onError?: () => void;
   /** Duración total en segundos. Por defecto STEP_DURATION segundos por paso. */
   totalSeconds?: number;
 }) {
@@ -52,12 +55,20 @@ export function ProgressModal({
   const [failedStep, setFailedStep] = useState<number | null>(null);
   const [failedProgress, setFailedProgress] = useState(0);
 
+  // Plan de falla (si la corre esta vez y en qué instante) — solo lectura para
+  // el efecto de abajo, no necesita disparar renders por sí mismo.
+  const planRef = useRef<{ plannedFailureStep: number | null; failureThreshold: number | null }>({ plannedFailureStep: null, failureThreshold: null });
+
+  // Arranca/reinicia el cronómetro: el intervalo solo avanza `elapsed`, un
+  // valor puro — nada de setState de otros componentes (onSuccess/onError)
+  // dentro del updater, porque React lo ejecuta durante el render.
   useEffect(() => {
     if (!open) return;
 
     const shouldFail = Math.random() < 0.3;
     const plannedFailureStep = shouldFail ? Math.floor(Math.random() * steps.length) : null;
     const failureThreshold = plannedFailureStep === null ? null : plannedFailureStep * stepDuration + Math.min(2, stepDuration / 2);
+    planRef.current = { plannedFailureStep, failureThreshold };
 
     setMode("running");
     setElapsed(0);
@@ -66,34 +77,33 @@ export function ProgressModal({
     setFailedProgress(0);
 
     const timer = window.setInterval(() => {
-      setElapsed((currentElapsed) => {
-        const nextElapsed = Math.min(currentElapsed + 1, totalSeconds);
-        const nextRemaining = Math.max(totalSeconds - nextElapsed, 0);
-        setRemaining(nextRemaining);
-
-        if (plannedFailureStep !== null && failureThreshold !== null && nextElapsed >= failureThreshold) {
-          setMode("error");
-          setFailedStep(plannedFailureStep);
-          setFailedProgress(Math.max(15, Math.round(((nextElapsed - plannedFailureStep * stepDuration) / stepDuration) * 100)));
-          window.clearInterval(timer);
-          return nextElapsed;
-        }
-
-        if (nextElapsed >= totalSeconds) {
-          setMode("success");
-          setFailedStep(null);
-          setFailedProgress(100);
-          window.clearInterval(timer);
-          onSuccess?.();
-        }
-
-        return nextElapsed;
-      });
+      setElapsed((currentElapsed) => Math.min(currentElapsed + 1, totalSeconds));
     }, 1000);
 
     return () => window.clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, runId, steps, totalSeconds, stepDuration]);
+
+  // Reacciona a cada tick: decide si toca fallar, tener éxito, o seguir
+  // corriendo. Vive en su propio efecto (no en el updater de arriba) para que
+  // los callbacks hacia el componente padre corran fuera del render.
+  useEffect(() => {
+    if (!open || mode !== "running") return;
+    setRemaining(Math.max(totalSeconds - elapsed, 0));
+
+    const { plannedFailureStep, failureThreshold } = planRef.current;
+    if (plannedFailureStep !== null && failureThreshold !== null && elapsed >= failureThreshold) {
+      setMode("error");
+      setFailedStep(plannedFailureStep);
+      setFailedProgress(Math.max(15, Math.round(((elapsed - plannedFailureStep * stepDuration) / stepDuration) * 100)));
+      onError?.();
+    } else if (elapsed >= totalSeconds) {
+      setMode("success");
+      setFailedStep(null);
+      setFailedProgress(100);
+      onSuccess?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [elapsed, open, mode, totalSeconds, stepDuration]);
 
   if (!open) return null;
 

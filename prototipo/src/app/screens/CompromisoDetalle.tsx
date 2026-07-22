@@ -45,6 +45,8 @@ export function CompromisoDetalle({ navigate, tipo = "compromiso", idCredito, so
           {tipo === "pago" && solcob && (
             <div style={{ marginTop: "2px", fontSize: "13px", color: C.muted, fontFamily: C.mono }}>{solcob}</div>
           )}
+          {/* Fecha de carga de cartera: informativo, con menos peso visual que las 3 fechas relevantes */}
+          <div style={{ marginTop: "4px", fontSize: "11px", color: C.muted }}>Cartera cargada el {f.fechaCargaCartera}-2026</div>
         </div>
         <div style={{ display: "flex", gap: "8px" }}>
           <Btn
@@ -73,12 +75,24 @@ export function CompromisoDetalle({ navigate, tipo = "compromiso", idCredito, so
           <p style={{ margin: 0, fontSize: "13px", color: C.navy, lineHeight: 1.55 }}>{f.resumenIA}</p>
         </Card>
 
-        {/* Fecha, Estado, Pago, Situación y Monto — mismas columnas que "Mi cartera" en el Panel */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: "12px", marginBottom: "20px" }}>
-          <Card style={{ padding: "18px 18px", minHeight: "92px", background: C.blueSoft, border: "1px solid rgba(0,92,185,0.18)" }}>
-            <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted }}>Fecha del compromiso</div>
-            <div style={{ marginTop: "5px", fontSize: "18px", fontWeight: 800, fontFamily: C.mono, color: C.blue, letterSpacing: "-0.03em" }}>{f.fechaCompromiso}</div>
+        {/* Las 3 fechas relevantes del compromiso */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "12px", marginBottom: "12px" }}>
+          <Card style={{ padding: "18px 18px", minHeight: "84px", background: C.blueSoft, border: "1px solid rgba(0,92,185,0.18)" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted }}>Fecha de contacto</div>
+            <div style={{ marginTop: "5px", fontSize: "18px", fontWeight: 800, fontFamily: C.mono, color: C.blue, letterSpacing: "-0.03em" }}>{f.fechaContacto || "No definido"}</div>
           </Card>
+          <Card style={{ padding: "18px 18px", minHeight: "84px", background: C.blueSoft, border: "1px solid rgba(0,92,185,0.18)" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted }}>Fecha de compromiso</div>
+            <div style={{ marginTop: "5px", fontSize: "18px", fontWeight: 800, fontFamily: C.mono, color: C.blue, letterSpacing: "-0.03em" }}>{f.fechaCompromiso || "No definido"}</div>
+          </Card>
+          <Card style={{ padding: "18px 18px", minHeight: "84px", background: C.blueSoft, border: "1px solid rgba(0,92,185,0.18)" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted }}>Fecha de pago</div>
+            <div style={{ marginTop: "5px", fontSize: "18px", fontWeight: 800, fontFamily: C.mono, color: f.fechaPago ? C.blue : C.muted, letterSpacing: "-0.03em" }}>{f.fechaPago || "No definido"}</div>
+          </Card>
+        </div>
+
+        {/* Estado, Pago, Situación y Monto — mismas columnas que "Mi cartera" en el Panel */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "12px", marginBottom: "20px" }}>
           <Card style={{ padding: "18px 18px", minHeight: "92px", ...tintFor("COMPROMETIDO") }}>
             <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted, marginBottom: "8px" }}>Estado</div>
             <Badge s="COMPROMETIDO" />
@@ -93,7 +107,7 @@ export function CompromisoDetalle({ navigate, tipo = "compromiso", idCredito, so
           </Card>
           <Card style={{ padding: "18px 18px", minHeight: "92px", background: C.blueSoft, border: "1px solid rgba(0,92,185,0.18)" }}>
             <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted }}>Monto</div>
-            <div style={{ marginTop: "5px", fontSize: "18px", fontWeight: 800, fontFamily: C.mono, color: C.blue, letterSpacing: "-0.03em" }}>{clp(f.montoComprometido - f.montoRecibido)}</div>
+            <div style={{ marginTop: "5px", fontSize: "18px", fontWeight: 800, fontFamily: C.mono, color: C.blue, letterSpacing: "-0.03em" }}>{clp(f.montoComprometido)}</div>
           </Card>
         </div>
 

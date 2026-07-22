@@ -14,6 +14,6 @@ if [[ ! -d "$APP_DIR/node_modules" ]]; then
   (cd "$APP_DIR" && npm install)
 fi
 
-echo "Iniciando el prototipo en http://127.0.0.1:5173/"
+echo "Iniciando el prototipo en http://127.0.0.1:5174/"
 cd "$APP_DIR"
-npm run dev -- --host 127.0.0.1
+npm run dev -- --host 127.0.0.1 --port 5174

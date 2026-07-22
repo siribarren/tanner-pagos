@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AlertTriangle, ArrowLeft, CheckCircle2, Download, FileText, Upload, X, Zap } from "lucide-react";
-import { C } from "../theme";
-import { CARTERA_EJECUTIVO } from "../data";
+import { C, clp } from "../theme";
+import { CARTERA_EJECUTIVO, MONTO_TRANSFERIDO_2941087 } from "../data";
 import type { Screen } from "../types";
 import { Btn, Card } from "../ui";
 import { ProgressModal, type ProgressStep } from "../ProgressModal";
@@ -13,7 +13,7 @@ import { DatePicker } from "../DatePicker";
 // "sin duplicados" que ven el resto de los créditos.
 const OCR_MISMATCH: Record<string, { monto: string; observacion: string }> = {
   "2941087": {
-    monto: "$95.000",
+    monto: clp(MONTO_TRANSFERIDO_2941087),
     observacion: "Observación: el monto transferido no coincide con el compromiso. Se debe revisar la cuadratura.",
   },
 };

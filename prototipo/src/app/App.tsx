@@ -1,18 +1,20 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Shell } from "./Shell";
+import { CARTERA_EJECUTIVO, type CarteraItem } from "./data";
 import { ProgressModal, type ProgressStep } from "./ProgressModal";
 import type { DetalleTipo, Rol, Screen } from "./types";
 import { Login } from "./screens/Login";
 import { Panel } from "./screens/Panel";
-import { Buscar } from "./screens/Buscar";
+import { Buscar, type SituacionFiltro } from "./screens/Buscar";
 import { CompromisoNuevo } from "./screens/CompromisoNuevo";
 import { CompromisoDetalle } from "./screens/CompromisoDetalle";
-import { PagosEnviados } from "./screens/PagosEnviados";
+import { PagosEnviados, type EstadoFiltro } from "./screens/PagosEnviados";
 import { Comprobante } from "./screens/Comprobante";
 import { Matching } from "./screens/Matching";
 import { Cuadratura } from "./screens/Cuadratura";
 import { Excepciones } from "./screens/Excepciones";
 import { Auditoria } from "./screens/Auditoria";
+import { Sincronizacion, type SincronizacionEvento } from "./screens/Sincronizacion";
 
 const EJECUTIVO_SCREENS: Screen[] = ["buscar", "compromiso_nuevo", "compromiso", "pagos", "comprobante", "matching", "cuadratura"];
 const SUPERVISOR_SCREENS: Screen[] = ["excepciones", "auditoria"];
@@ -73,9 +75,51 @@ export default function App() {
   const [rol, setRol] = useState<Rol>("ejecutivo");
   const [syncOpen, setSyncOpen] = useState(false);
   const [syncRunId, setSyncRunId] = useState(0);
+  const [historialSincronizaciones, setHistorialSincronizaciones] = useState<SincronizacionEvento[]>([]);
   const [detalleTipo, setDetalleTipo] = useState<DetalleTipo>("compromiso");
   const [detalleIdCredito, setDetalleIdCredito] = useState("3350049");
   const [detalleSolcob, setDetalleSolcob] = useState<string | null>(null);
+
+  // Filtros iniciales de Compromisos/Pagos al llegar desde las cards de "Mi
+  // Escritorio" (p. ej. "Pagos rechazados" → Pagos filtrado por Rechazada). Se
+  // resetean a "todos" en cualquier otra navegación para que no queden pegados.
+  const [compromisoFiltroInicial, setCompromisoFiltroInicial] = useState("todos");
+  const [pagoFiltroInicial, setPagoFiltroInicial] = useState("todos");
+
+  // Overrides de cartera creados en esta sesión (ejemplos de interacción: al
+  // crear un compromiso, la fila de "Mi cartera"/"Compromisos" pasa a
+  // Comprometido con su monto/cuotas/pago/situación reales). Vive solo en
+  // memoria — no se persiste — así que se pierde al recargar o reiniciar la
+  // plataforma, volviendo la cartera a su estado de ejemplo original.
+  const [comprometidosSesion, setComprometidosSesion] = useState<Record<string, Omit<CarteraItem, "id" | "rut" | "cliente" | "estado">>>({});
+  const cartera = useMemo(
+    () => CARTERA_EJECUTIVO.map((item) =>
+      comprometidosSesion[item.id] ? { ...item, estado: "COMPROMETIDO" as const, ...comprometidosSesion[item.id] } : item
+    ),
+    [comprometidosSesion]
+  );
+  const registrarCompromisoSesion = (id: string, datos: Omit<CarteraItem, "id" | "rut" | "cliente" | "estado">) => {
+    setComprometidosSesion((prev) => ({ ...prev, [id]: datos }));
+  };
+
+  // Navegación genérica: siempre resetea los filtros iniciales de Compromisos/
+  // Pagos a "todos", para que solo queden aplicados justo al entrar desde una
+  // card de "Mi Escritorio" (ver irACompromisos/irAPagos más abajo).
+  const navigate = (s: Screen) => {
+    setCompromisoFiltroInicial("todos");
+    setPagoFiltroInicial("todos");
+    setScreen(s);
+  };
+
+  const irACompromisos = (situacion: string) => {
+    setCompromisoFiltroInicial(situacion);
+    setScreen("buscar");
+  };
+
+  const irAPagos = (estado: string) => {
+    setPagoFiltroInicial(estado);
+    setScreen("pagos");
+  };
 
   // La ficha de detalle (screen "compromiso") es compartida por Compromisos y
   // Pagos: quien navega hacia ella indica de cuál de las dos se trata, y de qué
@@ -108,6 +152,15 @@ export default function App() {
     setSyncRunId((current) => current + 1);
   };
 
+  // Registra cada sincronización (exitosa o fallida) en el historial que muestra
+  // la pantalla "Sincronización" del menú lateral.
+  const registrarSincronizacion = (estado: SincronizacionEvento["estado"]) => {
+    const ahora = new Date();
+    const fecha = ahora.toLocaleDateString("es-CL", { day: "2-digit", month: "2-digit", year: "numeric" });
+    const hora = ahora.toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit", hour12: false });
+    setHistorialSincronizaciones((prev) => [{ fecha, hora, estado }, ...prev]);
+  };
+
   const changeRol = (newRol: Rol) => {
     setRol(newRol);
     if (newRol === "supervisor" && EJECUTIVO_SCREENS.includes(screen)) setScreen("panel");
@@ -118,17 +171,18 @@ export default function App() {
 
   return (
     <>
-      <Shell screen={screen} rol={rol} navigate={setScreen} onChangeRol={changeRol} onLogout={() => setLoggedIn(false)}>
-        {screen === "panel"            && <Panel            rol={rol} navigate={setScreen} onSync={startSync} abrirDetalle={abrirDetalle} abrirCompromiso={abrirCompromiso} />}
-        {screen === "buscar"           && <Buscar            navigate={setScreen} onSync={startSync} abrirCompromiso={abrirCompromiso} />}
-        {screen === "compromiso_nuevo" && <CompromisoNuevo   idCredito={detalleIdCredito} navigate={setScreen} />}
-        {screen === "compromiso"       && <CompromisoDetalle navigate={setScreen} tipo={detalleTipo} idCredito={detalleIdCredito} solcob={detalleSolcob} />}
-        {screen === "pagos"            && <PagosEnviados     navigate={setScreen} onSync={startSync} abrirDetalle={abrirDetalle} />}
-        {screen === "comprobante"      && <Comprobante       navigate={setScreen} idCredito={detalleIdCredito} />}
-        {screen === "matching"         && <Matching          navigate={setScreen} />}
-        {screen === "cuadratura"       && <Cuadratura        navigate={setScreen} abrirDetalle={abrirDetalle} idCredito={detalleIdCredito} />}
+      <Shell screen={screen} rol={rol} navigate={navigate} onChangeRol={changeRol} onLogout={() => setLoggedIn(false)}>
+        {screen === "panel"            && <Panel            rol={rol} cartera={cartera} navigate={navigate} onSync={startSync} abrirDetalle={abrirDetalle} abrirCompromiso={abrirCompromiso} irACompromisos={irACompromisos} irAPagos={irAPagos} />}
+        {screen === "buscar"           && <Buscar            cartera={cartera} navigate={navigate} onSync={startSync} abrirCompromiso={abrirCompromiso} filtroSituacionInicial={compromisoFiltroInicial as SituacionFiltro} />}
+        {screen === "compromiso_nuevo" && <CompromisoNuevo   idCredito={detalleIdCredito} navigate={navigate} onCompromisoCreado={registrarCompromisoSesion} />}
+        {screen === "compromiso"       && <CompromisoDetalle navigate={navigate} tipo={detalleTipo} idCredito={detalleIdCredito} solcob={detalleSolcob} />}
+        {screen === "pagos"            && <PagosEnviados     navigate={navigate} onSync={startSync} abrirDetalle={abrirDetalle} filtroEstadoInicial={pagoFiltroInicial as EstadoFiltro} />}
+        {screen === "comprobante"      && <Comprobante       navigate={navigate} idCredito={detalleIdCredito} />}
+        {screen === "matching"         && <Matching          navigate={navigate} />}
+        {screen === "cuadratura"       && <Cuadratura        navigate={navigate} abrirDetalle={abrirDetalle} idCredito={detalleIdCredito} />}
         {screen === "excepciones"      && <Excepciones />}
         {screen === "auditoria"        && <Auditoria />}
+        {screen === "sincronizacion"   && <Sincronizacion    historial={historialSincronizaciones} onSync={startSync} />}
       </Shell>
       <ProgressModal
         open={syncOpen}
@@ -139,6 +193,8 @@ export default function App() {
         resumen={SYNC_RESUMEN}
         onClose={() => setSyncOpen(false)}
         onRetry={retrySync}
+        onSuccess={() => registrarSincronizacion("COMPLETADA")}
+        onError={() => registrarSincronizacion("FALLIDA")}
       />
     </>
   );

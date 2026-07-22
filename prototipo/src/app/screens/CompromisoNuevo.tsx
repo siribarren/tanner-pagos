@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Check, Plus, Sparkles } from "lucide-react";
+import { Calendar, Check, Plus, Sparkles } from "lucide-react";
 import { C, clp } from "../theme";
-import { INFO_COMPROMISO_NUEVO } from "../data";
+import { INFO_COMPROMISO_NUEVO, type CarteraItem } from "../data";
 import type { Screen } from "../types";
 import { Badge, Btn, Card, Chip } from "../ui";
 import { ProgressModal, type ProgressStep } from "../ProgressModal";
@@ -20,6 +20,21 @@ function formatoFechaLarga(iso: string) {
   const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
   return `${parseInt(d, 10)} de ${meses[parseInt(m, 10) - 1]} de ${y}`;
 }
+
+function formatoFechaCorta(iso: string) {
+  const [, m, d] = iso.split("-");
+  const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+  return `${parseInt(d, 10)}-${meses[parseInt(m, 10) - 1]}`;
+}
+
+// Ejemplos de interacción: al crear el compromiso para estos dos créditos, la
+// fila en "Mi cartera"/"Compromisos" pasa de Sin compromiso a Comprometido con
+// este tipo de Pago; el resto de los créditos no tiene este comportamiento
+// conectado (son solo 2 ejemplos, no una regla general).
+const PAGO_EJEMPLO_SESION: Record<string, string> = {
+  "3102456": "TOTAL",
+  "2876543": "PARCIAL",
+};
 
 type ModalPaso = "cerrado" | "confirmar" | "progreso";
 
@@ -46,7 +61,11 @@ const PROGRESO_RESUMEN = {
   error: "Se detectó un error al generar el compromiso. Puedes cerrar la ventana o reintentar el proceso completo.",
 };
 
-export function CompromisoNuevo({ idCredito, navigate }: { idCredito: string; navigate: (s: Screen) => void }) {
+export function CompromisoNuevo({ idCredito, navigate, onCompromisoCreado }: {
+  idCredito: string;
+  navigate: (s: Screen) => void;
+  onCompromisoCreado?: (id: string, datos: Omit<CarteraItem, "id" | "rut" | "cliente" | "estado">) => void;
+}) {
   const info = INFO_COMPROMISO_NUEVO[idCredito] ?? INFO_COMPROMISO_NUEVO["3350049"];
   const [sel, setSel] = useState<number[]>(info.seleccionInicial);
   const [canal, setCanal] = useState("Teléfono");
@@ -56,6 +75,20 @@ export function CompromisoNuevo({ idCredito, navigate }: { idCredito: string; na
   const [progresoRunId, setProgresoRunId] = useState(0);
   const [montoFocused, setMontoFocused] = useState(false);
   const [creado, setCreado] = useState(false);
+
+  // Reprogramar contacto: la única pantalla donde se puede cambiar esta fecha
+  // (en "Mi cartera" la fecha de contacto es solo lectura). Override en memoria,
+  // se pierde al recargar, igual que el resto de los datos de ejemplo.
+  const [reprogramando, setReprogramando] = useState(false);
+  const [nuevoContactoISO, setNuevoContactoISO] = useState("");
+  const [contactoOverride, setContactoOverride] = useState<string | null>(null);
+  const fechaContactoActual = contactoOverride ?? info.fechaContacto;
+
+  const confirmarReprogramarContacto = () => {
+    if (nuevoContactoISO) setContactoOverride(formatoFechaCorta(nuevoContactoISO));
+    setReprogramando(false);
+    setNuevoContactoISO("");
+  };
 
   const toggle = (n: number) => setSel(p => p.includes(n) ? p.filter(x => x !== n) : [...p, n]);
   const totalCuotas = info.cuotas.filter(c => sel.includes(c.num)).reduce((s, c) => s + c.aPagar, 0);
@@ -90,6 +123,8 @@ export function CompromisoNuevo({ idCredito, navigate }: { idCredito: string; na
             ID {idCredito}
           </div>
           <div style={{ marginTop: "6px", fontSize: "13px", color: C.muted, fontFamily: C.mono }}>RUT {info.rut}</div>
+          {/* Fecha de carga de cartera: informativo, con menos peso visual que las 3 fechas relevantes */}
+          <div style={{ marginTop: "4px", fontSize: "11px", color: C.muted }}>Cartera cargada el {info.fechaCargaCartera}-2026</div>
         </div>
         <Btn
           label={botonLabel}
@@ -111,19 +146,62 @@ export function CompromisoNuevo({ idCredito, navigate }: { idCredito: string; na
           </p>
         </Card>
 
-        {/* Fecha / Estado / Pago / Situación / Monto */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: "12px", marginBottom: "12px" }}>
-          <Card style={{ padding: "16px 16px", minHeight: "92px", background: C.blueSoft, border: "1px solid rgba(0,92,185,0.18)" }}>
-            <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted, marginBottom: "8px" }}>Fecha del compromiso</div>
+        {/* Sin fecha de compromiso todavía, pero ya hubo contacto: el cliente no dio
+            fecha o se negó a comprometerse. */}
+        {fechaContactoActual && !creado && (
+          <Card style={{ padding: "14px 20px", marginBottom: "16px", borderLeft: `5px solid ${C.cyan}`, background: C.cyanSoft }}>
+            <span style={{ fontSize: "13px", fontWeight: 700, color: C.cyan }}>Nuevo contacto programado</span>
+            <span style={{ fontSize: "13px", color: C.navy, marginLeft: "6px" }}>· el cliente fue contactado pero no dio fecha de compromiso ni se comprometió a pagar. Define abajo la fecha de compromiso si logra cerrarlo, o vuelve a programar un nuevo contacto.</span>
+          </Card>
+        )}
+
+        {/* Las 3 fechas relevantes del compromiso — mismo tamaño y familia
+            tipográfica en las 3 cards para que se lean como un solo bloque. */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "12px", marginBottom: "12px" }}>
+          <Card style={{ padding: "16px 16px", minHeight: "84px", background: C.blueSoft, border: "1px solid rgba(0,92,185,0.18)" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted, marginBottom: "8px" }}>Fecha de contacto</div>
+            {reprogramando ? (
+              <div onClick={(e) => e.stopPropagation()} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "8px" }}>
+                <div style={{ flex: "1 1 160px", minWidth: 0 }}><DatePicker value={nuevoContactoISO} onChange={setNuevoContactoISO} min={hoyISO()} /></div>
+                <Btn label="Guardar" onClick={confirmarReprogramarContacto} disabled={!nuevoContactoISO} />
+              </div>
+            ) : (
+              <>
+                <div style={{ fontSize: "18px", fontWeight: 800, fontFamily: C.mono, color: fechaContactoActual ? C.blue : C.muted, letterSpacing: "-0.03em" }}>{fechaContactoActual || "No definido"}</div>
+                <button
+                  type="button"
+                  onClick={() => { setReprogramando(true); setNuevoContactoISO(""); }}
+                  style={{
+                    marginTop: "8px", display: "inline-flex", alignItems: "center", gap: "6px",
+                    background: "transparent", border: "none", padding: 0,
+                    color: C.blue, fontSize: "12px", fontWeight: 700, cursor: "pointer",
+                  }}
+                >
+                  <Calendar size={13} />
+                  {fechaContactoActual ? "Reprogramar contacto" : "Programar contacto"}
+                </button>
+              </>
+            )}
+          </Card>
+          <Card style={{ padding: "16px 16px", minHeight: "84px", background: C.blueSoft, border: "1px solid rgba(0,92,185,0.18)" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted, marginBottom: "8px" }}>Fecha de compromiso</div>
             <DatePicker value={fecha} onChange={setFecha} min={hoyISO()} />
           </Card>
+          <Card style={{ padding: "16px 16px", minHeight: "84px", background: "#f1f5f9", border: `1px solid ${C.border}` }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted, marginBottom: "8px" }}>Fecha de pago</div>
+            <div style={{ fontSize: "18px", fontWeight: 800, fontFamily: C.mono, color: C.muted, letterSpacing: "-0.03em" }}>No definido</div>
+          </Card>
+        </div>
+
+        {/* Estado / Pago / Situación / Monto */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "12px", marginBottom: "12px" }}>
           <Card style={{ padding: "16px 16px", minHeight: "92px", background: "#f1f5f9", border: `1px solid ${C.border}` }}>
             <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted, marginBottom: "8px" }}>Estado</div>
             <Badge s={creado ? "PENDIENTE" : "SIN_COMPROMISO"} />
           </Card>
           <Card style={{ padding: "16px 16px", minHeight: "92px", background: "#f1f5f9", border: `1px solid ${C.border}`, opacity: creado ? 1 : 0.75 }}>
             <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted, marginBottom: "8px" }}>Pago</div>
-            {creado ? <Badge s="TOTAL" /> : <div style={{ fontSize: "12px", color: C.muted, fontWeight: 700 }}>Se define al guardar</div>}
+            {creado ? <Badge s={PAGO_EJEMPLO_SESION[idCredito] ?? "TOTAL"} /> : <div style={{ fontSize: "12px", color: C.muted, fontWeight: 700 }}>Se define al guardar</div>}
           </Card>
           <Card style={{ padding: "16px 16px", minHeight: "92px", background: "#f1f5f9", border: `1px solid ${C.border}`, opacity: creado ? 1 : 0.75 }}>
             <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted, marginBottom: "8px" }}>Situación</div>
@@ -184,7 +262,7 @@ export function CompromisoNuevo({ idCredito, navigate }: { idCredito: string; na
             return (
               <button key={c.num} onClick={() => toggle(c.num)} style={{
                 display: "grid",
-                gridTemplateColumns: "32px 88px 1fr auto auto",
+                gridTemplateColumns: "32px 1fr auto auto",
                 alignItems: "center", gap: "14px",
                 width: "100%", padding: "16px 20px",
                 background: active ? "rgba(0,92,185,0.04)" : "transparent",
@@ -207,13 +285,6 @@ export function CompromisoNuevo({ idCredito, navigate }: { idCredito: string; na
                 <div>
                   <div style={{ fontSize: "13px", fontWeight: 800, color: C.navy }}>Cuota {c.num}</div>
                   <div style={{ fontSize: "11px", color: C.muted, fontFamily: C.mono }}>{c.venc}</div>
-                </div>
-
-                {/* Mora warning */}
-                <div>
-                  {c.mora > 0 && (
-                    <span style={{ fontSize: "12px", color: C.red, fontWeight: 600 }}>+{clp(c.mora)} mora</span>
-                  )}
                 </div>
 
                 {/* Amount */}
@@ -307,7 +378,19 @@ export function CompromisoNuevo({ idCredito, navigate }: { idCredito: string; na
         totalSeconds={5}
         onClose={() => { setModal("cerrado"); navigate("buscar"); }}
         onRetry={reintentarGenerar}
-        onSuccess={() => setCreado(true)}
+        onSuccess={() => {
+          setCreado(true);
+          const pagoEjemplo = PAGO_EJEMPLO_SESION[idCredito];
+          if (pagoEjemplo) {
+            onCompromisoCreado?.(idCredito, {
+              monto: montoManual,
+              cuotas: sel.length,
+              pago: pagoEjemplo,
+              situacion: "SITUACION_PENDIENTE",
+              fechaCompromiso: formatoFechaCorta(fecha),
+            });
+          }
+        }}
       />
     </>
   );
