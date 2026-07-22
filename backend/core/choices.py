@@ -12,3 +12,7 @@ class TipoPago(models.TextChoices):
 class Situacion(models.TextChoices):
     PENDIENTE = "pendiente", "Pendiente",
     VALIDADO = "validado", "Validado"
+
+class CuotaEstado(models.TextChoices):
+    VENCIDA = "vencida", "Vencida",
+    VIGENTE = "vigente", "Vigente"

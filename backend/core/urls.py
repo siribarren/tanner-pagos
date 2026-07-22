@@ -1,3 +1,8 @@
-from django.urls import path
+from rest_framework.routers import DefaultRouter
 
-urlpatterns = []
+from .views import CarteraViewSet
+
+router = DefaultRouter()
+router.register("cartera", CarteraViewSet, basename="cartera")
+
+urlpatterns = router.urls

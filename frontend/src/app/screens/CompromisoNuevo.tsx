@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Calendar, Check, Plus, Sparkles } from "lucide-react";
 import { C, clp } from "../theme";
-import { INFO_COMPROMISO_NUEVO, type CarteraItem } from "../data";
+import { getCarteraDetalle, type CarteraDetalle } from "../../api/cartera";
 import type { Screen } from "../types";
 import { Badge, Btn, Card, Chip } from "../ui";
 import { ProgressModal, type ProgressStep } from "../ProgressModal";
@@ -13,6 +13,24 @@ import { DatePicker } from "../DatePicker";
 const CANALES = ["Teléfono", "WhatsApp", "Presencial"];
 
 const hoyISO = () => new Date().toISOString().slice(0, 10);
+
+type EstadoCuota = "VENCIDA" | "VIGENTE";
+
+type CuotaSeleccionable = {
+  num: number;
+  venc: string;
+  aPagar: number;
+  estado: EstadoCuota;
+};
+
+type InfoCompromisoNuevo = {
+  rut: string;
+  fechaContacto?: string;
+  estado?: string;
+  pago?: string;
+  situacion?: string;
+  cuotas: CuotaSeleccionable[];
+};
 
 function formatoFechaLarga(iso: string) {
   if (!iso) return "—";
@@ -27,14 +45,19 @@ function formatoFechaCorta(iso: string) {
   return `${parseInt(d, 10)}-${meses[parseInt(m, 10) - 1]}`;
 }
 
-// Ejemplos de interacción: al crear el compromiso para estos dos créditos, la
-// fila en "Mi cartera"/"Compromisos" pasa de Sin compromiso a Comprometido con
-// este tipo de Pago; el resto de los créditos no tiene este comportamiento
-// conectado (son solo 2 ejemplos, no una regla general).
-const PAGO_EJEMPLO_SESION: Record<string, string> = {
-  "3102456": "TOTAL",
-  "2876543": "PARCIAL",
-};
+function formatoFechaCuota(iso: string) {
+  const [y, m, d] = iso.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+function mapearCuota(cuota: CarteraDetalle["cuotas"][number]): CuotaSeleccionable {
+  return {
+    num: cuota.id,
+    venc: formatoFechaCuota(cuota.fecha),
+    aPagar: cuota.monto,
+    estado: cuota.estado === "vencida" ? "VENCIDA" : "VIGENTE",
+  };
+}
 
 type ModalPaso = "cerrado" | "confirmar" | "progreso";
 
@@ -61,20 +84,20 @@ const PROGRESO_RESUMEN = {
   error: "Se detectó un error al generar el compromiso. Puedes cerrar la ventana o reintentar el proceso completo.",
 };
 
-export function CompromisoNuevo({ idCredito, navigate, onCompromisoCreado }: {
+export function CompromisoNuevo({ idCredito, navigate }: {
   idCredito: string;
   navigate: (s: Screen) => void;
-  onCompromisoCreado?: (id: string, datos: Omit<CarteraItem, "id" | "rut" | "cliente" | "estado">) => void;
 }) {
-  const info = INFO_COMPROMISO_NUEVO[idCredito] ?? INFO_COMPROMISO_NUEVO["3350049"];
-  const [sel, setSel] = useState<number[]>(info.seleccionInicial);
+  const [info, setInfo] = useState<InfoCompromisoNuevo | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [sel, setSel] = useState<number[]>([]);
   const [canal, setCanal] = useState("Teléfono");
   const [fecha, setFecha] = useState(hoyISO());
   const [montoManual, setMontoManual] = useState<number>(0);
   const [modal, setModal] = useState<ModalPaso>("cerrado");
   const [progresoRunId, setProgresoRunId] = useState(0);
   const [montoFocused, setMontoFocused] = useState(false);
-  const [creado, setCreado] = useState(false);
 
   // Reprogramar contacto: la única pantalla donde se puede cambiar esta fecha
   // (en "Mi cartera" la fecha de contacto es solo lectura). Override en memoria,
@@ -82,7 +105,43 @@ export function CompromisoNuevo({ idCredito, navigate, onCompromisoCreado }: {
   const [reprogramando, setReprogramando] = useState(false);
   const [nuevoContactoISO, setNuevoContactoISO] = useState("");
   const [contactoOverride, setContactoOverride] = useState<string | null>(null);
-  const fechaContactoActual = contactoOverride ?? info.fechaContacto;
+  const fechaContactoActual = contactoOverride ?? info?.fechaContacto;
+
+  useEffect(() => {
+    let activo = true;
+    setLoading(true);
+    setError(null);
+    setInfo(null);
+    setSel([]);
+    setContactoOverride(null);
+
+    getCarteraDetalle(idCredito)
+      .then((detalle) => {
+        if (!activo) return;
+        const cuotas = detalle.cuotas.map(mapearCuota);
+        setInfo({
+          rut: detalle.credito.rut,
+          fechaContacto: detalle.crm?.fecha_contacto
+            ? formatoFechaCorta(detalle.crm.fecha_contacto)
+            : undefined,
+          estado: detalle.crm?.estado?.toUpperCase(),
+          pago: detalle.crm?.pago?.toUpperCase(),
+          situacion: detalle.crm?.situacion?.toUpperCase(),
+          cuotas,
+        });
+        setSel(cuotas.filter((cuota) => cuota.estado === "VENCIDA").map((cuota) => cuota.num));
+      })
+      .catch(() => {
+        if (activo) setError("No fue posible cargar las cuotas del crédito.");
+      })
+      .finally(() => {
+        if (activo) setLoading(false);
+      });
+
+    return () => {
+      activo = false;
+    };
+  }, [idCredito]);
 
   const confirmarReprogramarContacto = () => {
     if (nuevoContactoISO) setContactoOverride(formatoFechaCorta(nuevoContactoISO));
@@ -91,17 +150,17 @@ export function CompromisoNuevo({ idCredito, navigate, onCompromisoCreado }: {
   };
 
   const toggle = (n: number) => setSel(p => p.includes(n) ? p.filter(x => x !== n) : [...p, n]);
-  const totalCuotas = info.cuotas.filter(c => sel.includes(c.num)).reduce((s, c) => s + c.aPagar, 0);
+  const cuotas = info?.cuotas ?? [];
+  const totalCuotas = cuotas.filter(c => sel.includes(c.num)).reduce((s, c) => s + c.aPagar, 0);
 
   // El monto manual sigue al total de cuotas seleccionadas por defecto; el
   // ejecutivo puede sobrescribirlo si el cliente comprometió un monto distinto.
   useEffect(() => setMontoManual(totalCuotas), [totalCuotas]);
 
   const saf = montoManual - totalCuotas;
-  const deudaTotal = info.cuotas.reduce((s, c) => s + c.aPagar, 0);
+  const deudaTotal = cuotas.reduce((s, c) => s + c.aPagar, 0);
 
   const generar = () => {
-    setCreado(false);
     setModal("progreso");
     setProgresoRunId((current) => current + 1);
   };
@@ -110,6 +169,14 @@ export function CompromisoNuevo({ idCredito, navigate, onCompromisoCreado }: {
   const botonLabel = sel.length
     ? `Crear compromiso por ${clp(montoManual)}`
     : "Selecciona al menos una cuota";
+
+  if (loading) {
+    return <div style={{ padding: "32px 24px", color: C.muted }}>Cargando cuotas del crédito...</div>;
+  }
+
+  if (error || !info) {
+    return <div style={{ padding: "32px 24px", color: C.red }}>{error ?? "No fue posible cargar el crédito."}</div>;
+  }
 
   return (
     <>
@@ -123,8 +190,7 @@ export function CompromisoNuevo({ idCredito, navigate, onCompromisoCreado }: {
             ID {idCredito}
           </div>
           <div style={{ marginTop: "6px", fontSize: "13px", color: C.muted, fontFamily: C.mono }}>RUT {info.rut}</div>
-          {/* Fecha de carga de cartera: informativo, con menos peso visual que las 3 fechas relevantes */}
-          <div style={{ marginTop: "4px", fontSize: "11px", color: C.muted }}>Cartera cargada el {info.fechaCargaCartera}-2026</div>
+          <div style={{ marginTop: "4px", fontSize: "11px", color: C.muted }}>Datos cargados desde la base de datos</div>
         </div>
         <Btn
           label={botonLabel}
@@ -142,18 +208,9 @@ export function CompromisoNuevo({ idCredito, navigate, onCompromisoCreado }: {
             <span style={{ fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: C.cyan }}>Resumen IA</span>
           </div>
           <p style={{ margin: 0, fontSize: "13px", color: C.navy, lineHeight: 1.55 }}>
-            El cliente mantiene {info.cuotas.length} cuota{info.cuotas.length > 1 ? "s" : ""} vencida{info.cuotas.length > 1 ? "s" : ""} por un total de {clp(deudaTotal)}. Aún no existe un compromiso de pago formalizado; defina fecha, monto y canal de contacto para generarlo.
+            El crédito mantiene {cuotas.length} cuota{cuotas.length > 1 ? "s" : ""} por un total de {clp(deudaTotal)}. Aún no existe un compromiso de pago formalizado; defina fecha, monto y canal de contacto para generarlo.
           </p>
         </Card>
-
-        {/* Sin fecha de compromiso todavía, pero ya hubo contacto: el cliente no dio
-            fecha o se negó a comprometerse. */}
-        {fechaContactoActual && !creado && (
-          <Card style={{ padding: "14px 20px", marginBottom: "16px", borderLeft: `5px solid ${C.cyan}`, background: C.cyanSoft }}>
-            <span style={{ fontSize: "13px", fontWeight: 700, color: C.cyan }}>Nuevo contacto programado</span>
-            <span style={{ fontSize: "13px", color: C.navy, marginLeft: "6px" }}>· el cliente fue contactado pero no dio fecha de compromiso ni se comprometió a pagar. Define abajo la fecha de compromiso si logra cerrarlo, o vuelve a programar un nuevo contacto.</span>
-          </Card>
-        )}
 
         {/* Las 3 fechas relevantes del compromiso — mismo tamaño y familia
             tipográfica en las 3 cards para que se lean como un solo bloque. */}
@@ -197,15 +254,15 @@ export function CompromisoNuevo({ idCredito, navigate, onCompromisoCreado }: {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "12px", marginBottom: "12px" }}>
           <Card style={{ padding: "16px 16px", minHeight: "92px", background: "#f1f5f9", border: `1px solid ${C.border}` }}>
             <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted, marginBottom: "8px" }}>Estado</div>
-            <Badge s={creado ? "PENDIENTE" : "SIN_COMPROMISO"} />
+            {info.estado ? <Badge s={info.estado} /> : <div style={{ fontSize: "12px", color: C.muted, fontWeight: 700 }}>No definido</div>}
           </Card>
-          <Card style={{ padding: "16px 16px", minHeight: "92px", background: "#f1f5f9", border: `1px solid ${C.border}`, opacity: creado ? 1 : 0.75 }}>
+          <Card style={{ padding: "16px 16px", minHeight: "92px", background: "#f1f5f9", border: `1px solid ${C.border}` }}>
             <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted, marginBottom: "8px" }}>Pago</div>
-            {creado ? <Badge s={PAGO_EJEMPLO_SESION[idCredito] ?? "TOTAL"} /> : <div style={{ fontSize: "12px", color: C.muted, fontWeight: 700 }}>Se define al guardar</div>}
+            {info.pago ? <Badge s={info.pago} /> : <div style={{ fontSize: "12px", color: C.muted, fontWeight: 700 }}>No definido</div>}
           </Card>
-          <Card style={{ padding: "16px 16px", minHeight: "92px", background: "#f1f5f9", border: `1px solid ${C.border}`, opacity: creado ? 1 : 0.75 }}>
+          <Card style={{ padding: "16px 16px", minHeight: "92px", background: "#f1f5f9", border: `1px solid ${C.border}` }}>
             <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted, marginBottom: "8px" }}>Situación</div>
-            {creado ? <Badge s="SITUACION_PENDIENTE" /> : <div style={{ fontSize: "12px", color: C.muted, fontWeight: 700 }}>Se define al guardar</div>}
+            {info.situacion ? <Badge s={`SITUACION_${info.situacion}`} /> : <div style={{ fontSize: "12px", color: C.muted, fontWeight: 700 }}>No definido</div>}
           </Card>
           <Card style={{ padding: "16px 16px", minHeight: "92px", background: C.blueSoft, border: "1px solid rgba(0,92,185,0.18)" }}>
             <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted }}>Monto según cuotas</div>
@@ -254,10 +311,12 @@ export function CompromisoNuevo({ idCredito, navigate, onCompromisoCreado }: {
           </div>
         </Card>
 
-        {/* Cuotas pendientes vencidas */}
-        <h3 style={{ margin: "0 0 10px", fontSize: "14px", fontWeight: 700, color: C.navy }}>Cuotas pendientes vencidas</h3>
+        {/* Cuotas pendientes desde la base de datos */}
+        <h3 style={{ margin: "0 0 10px", fontSize: "14px", fontWeight: 700, color: C.navy }}>Cuotas pendientes</h3>
         <Card style={{ marginBottom: "16px", overflow: "hidden" }}>
-          {info.cuotas.map((c, i) => {
+          {cuotas.length === 0 ? (
+            <div style={{ padding: "20px", color: C.muted, fontSize: "13px" }}>Este crédito no tiene cuotas registradas.</div>
+          ) : cuotas.map((c, i) => {
             const active = sel.includes(c.num);
             return (
               <button key={c.num} onClick={() => toggle(c.num)} style={{
@@ -267,7 +326,7 @@ export function CompromisoNuevo({ idCredito, navigate, onCompromisoCreado }: {
                 width: "100%", padding: "16px 20px",
                 background: active ? "rgba(0,92,185,0.04)" : "transparent",
                 border: "none",
-                borderBottom: i < info.cuotas.length - 1 ? `1px solid ${C.border}` : "none",
+                borderBottom: i < cuotas.length - 1 ? `1px solid ${C.border}` : "none",
                 boxShadow: active ? "inset 4px 0 0 " + C.blue : "none",
                 cursor: "pointer", textAlign: "left",
               }}>
@@ -378,19 +437,7 @@ export function CompromisoNuevo({ idCredito, navigate, onCompromisoCreado }: {
         totalSeconds={5}
         onClose={() => { setModal("cerrado"); navigate("buscar"); }}
         onRetry={reintentarGenerar}
-        onSuccess={() => {
-          setCreado(true);
-          const pagoEjemplo = PAGO_EJEMPLO_SESION[idCredito];
-          if (pagoEjemplo) {
-            onCompromisoCreado?.(idCredito, {
-              monto: montoManual,
-              cuotas: sel.length,
-              pago: pagoEjemplo,
-              situacion: "SITUACION_PENDIENTE",
-              fechaCompromiso: formatoFechaCorta(fecha),
-            });
-          }
-        }}
+        onSuccess={() => undefined}
       />
     </>
   );

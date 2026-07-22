@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { C, FONT_UI, clp } from "./theme";
-import type { CarteraItem } from "./data";
+import type { CarteraItem } from "./api/cartera";
 import { Badge, Card } from "./ui";
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -57,7 +57,7 @@ export function CarteraTable({ items, onRowClick }: { items: CarteraItem[]; onRo
       case "fechaCompromiso": return (diaDeFecha(a.fechaCompromiso) - diaDeFecha(b.fechaCompromiso)) * dir;
       case "fechaPago":       return (diaDeFecha(a.fechaPago) - diaDeFecha(b.fechaPago)) * dir;
       case "id":         return (Number(a.id) - Number(b.id)) * dir;
-      case "estado":     return a.estado.localeCompare(b.estado) * dir;
+      case "estado":     return (a.estado ?? "").localeCompare(b.estado ?? "") * dir;
       case "pago":       return (a.pago ?? "").localeCompare(b.pago ?? "") * dir;
       case "situacion":  return (a.situacion ?? "").localeCompare(b.situacion ?? "") * dir;
       case "cuotas":     return (a.cuotas - b.cuotas) * dir;
@@ -125,19 +125,13 @@ export function CarteraTable({ items, onRowClick }: { items: CarteraItem[]; onRo
                 <td style={estiloFecha(!!a.fechaCompromiso)}>{a.fechaCompromiso || "No definido"}</td>
                 <td style={estiloFecha(!!a.fechaPago)}>{a.fechaPago || "No definido"}</td>
                 <td style={{ padding: "14px 10px", textAlign: "center" }}>
-                  <Badge s={a.estado} width="100%" wrap />
+                  {a.estado ? <Badge s={a.estado} width="100%" wrap /> : <span style={{ fontSize: "12px", color: C.muted }}>No definido</span>}
                 </td>
                 <td style={{ padding: "14px 10px", textAlign: "center" }}>
-                  {a.pago ? <Badge s={a.pago} width="100%" /> : <span style={{ fontSize: "11px", color: C.muted }}>Se define al guardar</span>}
+                  {a.pago ? <Badge s={a.pago} width="100%" /> : <span style={{ fontSize: "12px", color: C.muted }}>No definido</span>}
                 </td>
                 <td style={{ padding: "14px 10px", textAlign: "center" }}>
-                  {a.situacion ? (
-                    <Badge s={a.situacion} width="100%" wrap />
-                  ) : a.fechaContacto ? (
-                    <span style={{ fontSize: "12px", fontWeight: 700, color: C.cyan, lineHeight: 1.3 }}>Nuevo contacto programado</span>
-                  ) : (
-                    <span style={{ fontSize: "12px", color: C.muted }}>Se define al guardar</span>
-                  )}
+                  {a.situacion ? <Badge s={a.situacion} width="100%" wrap /> : <span style={{ fontSize: "12px", color: C.muted }}>No definido</span>}
                 </td>
                 <td style={{ padding: "14px 10px", textAlign: "right", fontSize: "13px", fontWeight: 700, color: C.navy, fontFamily: C.mono }}>{a.cuotas}</td>
                 <td style={{ padding: "14px 10px", textAlign: "right", fontSize: "14px", fontWeight: 800, color: C.navy, fontFamily: FONT_UI, letterSpacing: "-0.03em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{clp(a.monto)}</td>

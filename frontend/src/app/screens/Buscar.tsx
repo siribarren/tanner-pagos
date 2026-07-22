@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { C, FONT_UI } from "../theme";
-import type { CarteraItem } from "../data";
+import type { CarteraItem } from "../api/cartera";
 import { CarteraTable } from "../CarteraTable";
 import type { Screen } from "../types";
 import { Chip, GhostBtn, HeroHeader, updatedAtLabel } from "../ui";
@@ -14,12 +14,12 @@ import { Chip, GhostBtn, HeroHeader, updatedAtLabel } from "../ui";
 // rechazado" NO aplican acá — son estados de la solicitud SOLCOB una vez
 // enviada a autorización, y solo existen en "Mis Pagos".
 // ════════════════════════════════════════════════════════════════════════════════
-export type SituacionFiltro = "todos" | "SITUACION_PENDIENTE" | "SITUACION_OBSERVADO";
+export type SituacionFiltro = "todos" | "SITUACION_PENDIENTE" | "SITUACION_VALIDADO";
 
 const SITUACIONES: Array<{ key: SituacionFiltro; label: string }> = [
   { key: "todos",               label: "Todos" },
   { key: "SITUACION_PENDIENTE", label: "Pago pendiente de validar" },
-  { key: "SITUACION_OBSERVADO", label: "Pago validado con observaciones" },
+  { key: "SITUACION_VALIDADO",  label: "Pago validado" },
 ];
 
 export function Buscar({ cartera, navigate, onSync, abrirCompromiso, filtroSituacionInicial = "todos" }: {

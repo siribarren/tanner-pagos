@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { C, FONT_UI, clp } from "../theme";
-import { ABONO_TRANSFERENCIA_3287612, COMPROMISOS_DETALLE, type CarteraItem } from "../data";
+import { ABONO_TRANSFERENCIA_3287612, COMPROMISOS_DETALLE } from "../data";
+import type { CarteraItem } from "../api/cartera";
 import { CarteraTable } from "../CarteraTable";
 import type { DetalleTipo, Rol, Screen } from "../types";
 import { Badge, Card, GhostBtn, HeroHeader, SolidBtn, updatedAtLabel } from "../ui";

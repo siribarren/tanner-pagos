@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Shell } from "./Shell";
-import { CARTERA_EJECUTIVO, type CarteraItem } from "./data";
+import type { CarteraItem } from "../api/cartera";
+import { getCartera } from "../api/cartera";
 import { ProgressModal, type ProgressStep } from "./ProgressModal";
 import type { DetalleTipo, Rol, Screen } from "./types";
 import { Login } from "./screens/Login";
@@ -86,21 +87,15 @@ export default function App() {
   const [compromisoFiltroInicial, setCompromisoFiltroInicial] = useState("todos");
   const [pagoFiltroInicial, setPagoFiltroInicial] = useState("todos");
 
-  // Overrides de cartera creados en esta sesión (ejemplos de interacción: al
-  // crear un compromiso, la fila de "Mi cartera"/"Compromisos" pasa a
-  // Comprometido con su monto/cuotas/pago/situación reales). Vive solo en
-  // memoria — no se persiste — así que se pierde al recargar o reiniciar la
-  // plataforma, volviendo la cartera a su estado de ejemplo original.
-  const [comprometidosSesion, setComprometidosSesion] = useState<Record<string, Omit<CarteraItem, "id" | "rut" | "cliente" | "estado">>>({});
-  const cartera = useMemo(
-    () => CARTERA_EJECUTIVO.map((item) =>
-      comprometidosSesion[item.id] ? { ...item, estado: "COMPROMETIDO" as const, ...comprometidosSesion[item.id] } : item
-    ),
-    [comprometidosSesion]
-  );
-  const registrarCompromisoSesion = (id: string, datos: Omit<CarteraItem, "id" | "rut" | "cliente" | "estado">) => {
-    setComprometidosSesion((prev) => ({ ...prev, [id]: datos }));
-  };
+  const [carteraBase, setCarteraBase] = useState<CarteraItem[]>([]);
+
+  useEffect(() => {
+    getCartera()
+      .then(setCarteraBase)
+      .catch((error) => console.error(error));
+  }, []);
+
+  const cartera = carteraBase;
 
   // Navegación genérica: siempre resetea los filtros iniciales de Compromisos/
   // Pagos a "todos", para que solo queden aplicados justo al entrar desde una
@@ -174,7 +169,7 @@ export default function App() {
       <Shell screen={screen} rol={rol} navigate={navigate} onChangeRol={changeRol} onLogout={() => setLoggedIn(false)}>
         {screen === "panel"            && <Panel            rol={rol} cartera={cartera} navigate={navigate} onSync={startSync} abrirDetalle={abrirDetalle} abrirCompromiso={abrirCompromiso} irACompromisos={irACompromisos} irAPagos={irAPagos} />}
         {screen === "buscar"           && <Buscar            cartera={cartera} navigate={navigate} onSync={startSync} abrirCompromiso={abrirCompromiso} filtroSituacionInicial={compromisoFiltroInicial as SituacionFiltro} />}
-        {screen === "compromiso_nuevo" && <CompromisoNuevo   idCredito={detalleIdCredito} navigate={navigate} onCompromisoCreado={registrarCompromisoSesion} />}
+        {screen === "compromiso_nuevo" && <CompromisoNuevo   idCredito={detalleIdCredito} navigate={navigate} />}
         {screen === "compromiso"       && <CompromisoDetalle navigate={navigate} tipo={detalleTipo} idCredito={detalleIdCredito} solcob={detalleSolcob} />}
         {screen === "pagos"            && <PagosEnviados     navigate={navigate} onSync={startSync} abrirDetalle={abrirDetalle} filtroEstadoInicial={pagoFiltroInicial as EstadoFiltro} />}
         {screen === "comprobante"      && <Comprobante       navigate={navigate} idCredito={detalleIdCredito} />}

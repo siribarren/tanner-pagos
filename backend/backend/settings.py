@@ -56,6 +56,12 @@ SPECTACULAR_SETTINGS = {
       "DESCRIPTION": "API para gestión, conciliación y liquidación de pagos",
       "VERSION": "1.0.0",
       "SERVE_INCLUDE_SCHEMA": False,
+      "ENUM_NAME_OVERRIDES": {
+          "CRMFilaEstadoEnum": "core.choices.EstadoCRM",
+          "CuotaEstadoEnum": "core.choices.CuotaEstado",
+          "PagoEnum": "core.choices.TipoPago",
+          "SituacionEnum": "core.choices.Situacion",
+      },
 }
 
 MIDDLEWARE = [
