@@ -2,9 +2,17 @@ from django.db import models
 from .choices import EstadoCRM, TipoPago, Situacion
 # Create your models here.
 
+#CREDITO
+class Credito(models.Model):
+    id = models.AutoField(primary_key=True)
+    rut_deudor = models.CharField()
+
+    class Meta:
+        db_table = 'credito'
+
 class CRMFila(models.Model):
     id = models.AutoField(primary_key=True)
-    credito_id = models.IntegerField()
+    credito_id = models.ForeignKey(Credito, on_delete=models.CASCADE, db_column='credito_id', related_name='crm_fila')
     fecha_contacto = models.DateField(null=True)
     fecha_compromiso = models.DateField(null=True)
     fecha_pago = models.DateField(null=True)
@@ -16,14 +24,6 @@ class CRMFila(models.Model):
 
     class Meta:
         db_table = 'crm_fila'
-
-#CREDITO
-class Credito(models.Model):
-    id = models.AutoField(primary_key=True)
-    rut_deudor = models.CharField()
-
-    class Meta:
-        db_table = 'credito'
 
 # CUOTA -> HEREDA CREDITO_ID
 class Cuota(models.Model):
