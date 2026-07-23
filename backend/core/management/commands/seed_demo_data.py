@@ -23,7 +23,7 @@ CREDITOS = {
             "pago": TipoPago.PARCIAL,
             "situacion": Situacion.PENDIENTE,
         },
-        "cuotas": (4, 813058),
+        "cuotas": (4, 813058, 2),
     },
     3287612: {
         "rut_deudor": "12.344.892-3",
@@ -37,7 +37,7 @@ CREDITOS = {
             "pago": TipoPago.PARCIAL,
             "situacion": Situacion.VALIDADO,
         },
-        "cuotas": (3, 879514),
+        "cuotas": (3, 879514, 1),
     },
     2941087: {
         "rut_deudor": "9.876.543-2",
@@ -51,7 +51,7 @@ CREDITOS = {
             "pago": TipoPago.TOTAL,
             "situacion": Situacion.PENDIENTE,
         },
-        "cuotas": (6, 785671),
+        "cuotas": (6, 785671, 6),
     },
     3102456: {
         "rut_deudor": "17.654.321-K",
@@ -65,7 +65,7 @@ CREDITOS = {
             "pago": None,
             "situacion": None,
         },
-        "cuotas": (6, 988917),
+        "cuotas": (6, 988917, 0),
     },
     2876543: {
         "rut_deudor": "14.876.543-1",
@@ -79,7 +79,7 @@ CREDITOS = {
             "pago": None,
             "situacion": None,
         },
-        "cuotas": (4, 623259),
+        "cuotas": (4, 623259, 0),
     },
     2198734: {
         "rut_deudor": "20.123.456-7",
@@ -93,7 +93,7 @@ CREDITOS = {
             "pago": None,
             "situacion": None,
         },
-        "cuotas": (3, 1400950),
+        "cuotas": (3, 1400950, 0),
     },
     3876209: {
         "rut_deudor": "16.987.654-3",
@@ -107,7 +107,7 @@ CREDITOS = {
             "pago": None,
             "situacion": None,
         },
-        "cuotas": (4, 775000),
+        "cuotas": (4, 775000, 0),
     },
 }
 
@@ -141,17 +141,21 @@ class Command(BaseCommand):
                 },
             )
 
-            CRMFila.objects.update_or_create(
+            count, amount, comprometidas = data["cuotas"]
+            monto_comprometido = comprometidas * amount if comprometidas else None
+
+            fila, _ = CRMFila.objects.update_or_create(
                 id=credito_id,
                 defaults={
                     "credito_id": credito,
+                    "monto": monto_comprometido,
                     **data["crm"],
                 },
             )
 
-            count, amount = data["cuotas"]
+            cuota_ids = []
             for index in range(count):
-                Cuota.objects.update_or_create(
+                cuota, _ = Cuota.objects.update_or_create(
                     id=credito_id * 10 + index + 1,
                     defaults={
                         "credito_id": credito,
@@ -160,7 +164,12 @@ class Command(BaseCommand):
                         "monto": amount,
                     },
                 )
+                cuota_ids.append(cuota.id)
                 cuotas_creadas += 1
+
+            Cuota.objects.filter(credito_id=credito).update(crm_fila_id=None)
+            if comprometidas:
+                Cuota.objects.vincular_a_compromiso(cuota_ids[:comprometidas], fila)
 
         sequence_sql = connection.ops.sequence_reset_sql(
             no_style(),
