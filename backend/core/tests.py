@@ -1,5 +1,6 @@
 from datetime import date
 
+from django.core import mail
 from django.db import IntegrityError
 from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
@@ -75,6 +76,7 @@ class CompromisoApiTests(TestCase):
             id=9100001,
             rut_deudor="22.222.222-2",
             nombre_deudor="Cliente compromiso",
+            correo_deudor="cliente@example.com",
         )
         self.otro_credito = Credito.objects.create(
             id=9100002,
@@ -173,6 +175,26 @@ class CompromisoApiTests(TestCase):
         cuotas_por_id = {c["id"]: c for c in detalle["cuotas"]}
         self.assertEqual(cuotas_por_id[self.vencida_1.id]["crm_fila_id"], fila_id)
         self.assertIsNone(cuotas_por_id[self.vencida_2.id]["crm_fila_id"])
+
+    def test_compromiso_envia_correo_al_deudor(self):
+        self.client.post(f"/api/cartera/{self.credito.id}/contacto/", {"fecha_contacto": date.today().isoformat()})
+
+        response = self.client.post(
+            f"/api/cartera/{self.credito.id}/compromiso/",
+            {
+                "fecha_compromiso": date.today().isoformat(),
+                "canal_contacto": CanalContacto.TELEFONO,
+                "monto": 100000,
+                "cuota_ids": [self.vencida_1.id],
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(len(mail.outbox), 1)
+        enviado = mail.outbox[0]
+        self.assertEqual(enviado.to, ["cliente@example.com"])
+        self.assertIn("100.000", enviado.body)
 
     def test_compromiso_rechaza_fecha_anterior_a_hoy(self):
         self.client.post(f"/api/cartera/{self.credito.id}/contacto/", {"fecha_contacto": date.today().isoformat()})

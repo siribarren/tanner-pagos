@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 
 from .choices import CuotaEstado
+from .email_service import enviar_compromiso_creado
 from .models import CRMFila, Credito, Cuota
 from .serializers import (
     CarteraDetailSerializer,
@@ -73,4 +74,5 @@ class CarteraViewSet(viewsets.ReadOnlyModelViewSet):
             cuota_ids=data["cuota_ids"],
             vencidas_ids=data["_vencidas_ids"],
         )
+        enviar_compromiso_creado(credito.correo_deudor, data["fecha_compromiso"], data["monto"])
         return Response(CRMFilaSerializer(fila).data)
