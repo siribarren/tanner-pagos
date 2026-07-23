@@ -14,7 +14,7 @@ class Credito(models.Model):
         return f"Deudor: {self.rut_deudor} / Nombre: {self.nombre_deudor}"
 
     class Meta:
-        db_table = 'credito'
+        db_table = 'db_credito'
 
 class CRMFila(models.Model):
     id = models.AutoField(primary_key=True)
@@ -30,7 +30,7 @@ class CRMFila(models.Model):
         return f"Credito: {self.credito_id}, Fecha. Cont: {self.fecha_contacto}, Estado: {self.estado}"
 
     class Meta:
-        db_table = 'crm_fila'
+        db_table = 'db_crm_fila'
 
 # CUOTA -> HEREDA CREDITO_ID
 class Cuota(models.Model):
@@ -44,7 +44,7 @@ class Cuota(models.Model):
         return f"Cuota: {self.fecha} por {self.monto}"
 
     class Meta:
-        db_table = 'cuota'
+        db_table = 'db_cuota'
 
 
 #REQUESTCACHE
@@ -63,7 +63,7 @@ class RequestCache(models.Model):
     objects = RequestCacheManager()
 
     class Meta:
-        db_table = 'request_cache'
+        db_table = 'db_request_cache'
         constraints = [
             models.UniqueConstraint(fields=['model', 'request_hash'], name='uq_request_cache_model_hash'),
         ]
