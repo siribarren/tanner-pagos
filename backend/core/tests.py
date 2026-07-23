@@ -65,3 +65,131 @@ class CarteraApiTests(TestCase):
                 credito_id=self.credito,
                 canal_contacto="email",
             )
+
+
+@override_settings(ALLOWED_HOSTS=["testserver"])
+class CompromisoApiTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.credito = Credito.objects.create(
+            id=9100001,
+            rut_deudor="22.222.222-2",
+            nombre_deudor="Cliente compromiso",
+        )
+        self.otro_credito = Credito.objects.create(
+            id=9100002,
+            rut_deudor="33.333.333-3",
+            nombre_deudor="Otro cliente",
+        )
+        self.vencida_1 = Cuota.objects.create(
+            credito_id=self.credito, estado=CuotaEstado.VENCIDA, fecha=date(2026, 5, 20), monto=100000,
+        )
+        self.vencida_2 = Cuota.objects.create(
+            credito_id=self.credito, estado=CuotaEstado.VENCIDA, fecha=date(2026, 6, 20), monto=100000,
+        )
+        self.vigente = Cuota.objects.create(
+            credito_id=self.credito, estado=CuotaEstado.VIGENTE, fecha=date(2026, 8, 20), monto=100000,
+        )
+        self.cuota_otro_credito = Cuota.objects.create(
+            credito_id=self.otro_credito, estado=CuotaEstado.VENCIDA, fecha=date(2026, 5, 20), monto=50000,
+        )
+
+    def test_guardar_fecha_contacto_persiste_y_es_idempotente(self):
+        fecha = date.today()
+        response = self.client.post(f"/api/cartera/{self.credito.id}/contacto/", {"fecha_contacto": fecha.isoformat()})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(CRMFila.objects.filter(credito_id=self.credito).count(), 1)
+
+        response = self.client.post(f"/api/cartera/{self.credito.id}/contacto/", {"fecha_contacto": fecha.isoformat()})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(CRMFila.objects.filter(credito_id=self.credito).count(), 1)
+
+    def test_compromiso_rechaza_sin_fecha_contacto(self):
+        response = self.client.post(
+            f"/api/cartera/{self.credito.id}/compromiso/",
+            {
+                "fecha_compromiso": date.today().isoformat(),
+                "canal_contacto": CanalContacto.TELEFONO,
+                "monto": 100000,
+                "cuota_ids": [self.vencida_1.id],
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_compromiso_rechaza_cuota_de_otro_credito_o_vigente(self):
+        self.client.post(f"/api/cartera/{self.credito.id}/contacto/", {"fecha_contacto": date.today().isoformat()})
+
+        response = self.client.post(
+            f"/api/cartera/{self.credito.id}/compromiso/",
+            {
+                "fecha_compromiso": date.today().isoformat(),
+                "canal_contacto": CanalContacto.TELEFONO,
+                "monto": 100000,
+                "cuota_ids": [self.cuota_otro_credito.id],
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 400)
+
+        response = self.client.post(
+            f"/api/cartera/{self.credito.id}/compromiso/",
+            {
+                "fecha_compromiso": date.today().isoformat(),
+                "canal_contacto": CanalContacto.TELEFONO,
+                "monto": 100000,
+                "cuota_ids": [self.vigente.id],
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_compromiso_total_vs_parcial_y_vinculo_cuotas(self):
+        self.client.post(f"/api/cartera/{self.credito.id}/contacto/", {"fecha_contacto": date.today().isoformat()})
+
+        response = self.client.post(
+            f"/api/cartera/{self.credito.id}/compromiso/",
+            {
+                "fecha_compromiso": date.today().isoformat(),
+                "canal_contacto": CanalContacto.WHATSAPP,
+                "monto": 100000,
+                "cuota_ids": [self.vencida_1.id],
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["pago"], TipoPago.PARCIAL)
+        self.assertEqual(payload["situacion"], Situacion.PENDIENTE)
+        self.assertEqual(payload["estado"], EstadoCRM.COMPROMETIDO)
+
+        fila_id = payload["id"]
+        self.vencida_1.refresh_from_db()
+        self.vencida_2.refresh_from_db()
+        self.assertEqual(self.vencida_1.crm_fila_id_id, fila_id)
+        self.assertIsNone(self.vencida_2.crm_fila_id_id)
+
+        detalle = self.client.get(f"/api/cartera/{self.credito.id}/").json()
+        cuotas_por_id = {c["id"]: c for c in detalle["cuotas"]}
+        self.assertEqual(cuotas_por_id[self.vencida_1.id]["crm_fila_id"], fila_id)
+        self.assertIsNone(cuotas_por_id[self.vencida_2.id]["crm_fila_id"])
+
+    def test_compromiso_rechaza_fecha_anterior_a_hoy(self):
+        self.client.post(f"/api/cartera/{self.credito.id}/contacto/", {"fecha_contacto": date.today().isoformat()})
+
+        response = self.client.post(
+            f"/api/cartera/{self.credito.id}/compromiso/",
+            {
+                "fecha_compromiso": date(2020, 1, 1).isoformat(),
+                "canal_contacto": CanalContacto.TELEFONO,
+                "monto": 100000,
+                "cuota_ids": [self.vencida_1.id],
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_cuota_manager_rechaza_vincular_sin_estado_comprometido(self):
+        fila = CRMFila.objects.create(credito_id=self.credito)
+        with self.assertRaises(ValueError):
+            Cuota.objects.vincular_a_compromiso([self.vencida_1.id], fila)

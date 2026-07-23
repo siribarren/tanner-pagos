@@ -1,7 +1,9 @@
+from datetime import date
+
 from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field
 
-from .choices import CanalContacto, EstadoCRM, Situacion, TipoPago
+from .choices import CanalContacto, CuotaEstado, EstadoCRM, Situacion, TipoPago
 from .models import CRMFila, Credito, Cuota
 
 
@@ -17,7 +19,49 @@ class CRMFilaSerializer(serializers.ModelSerializer):
             "estado",
             "pago",
             "situacion",
+            "monto",
         )
+
+
+class ContactoCreateSerializer(serializers.Serializer):
+    fecha_contacto = serializers.DateField()
+
+    def validate_fecha_contacto(self, value):
+        if value < date.today():
+            raise serializers.ValidationError("La fecha de contacto no puede ser anterior a hoy.")
+        return value
+
+
+class CompromisoCreateSerializer(serializers.Serializer):
+    fecha_compromiso = serializers.DateField()
+    canal_contacto = serializers.ChoiceField(choices=CanalContacto.choices)
+    monto = serializers.IntegerField(min_value=1)
+    cuota_ids = serializers.ListField(child=serializers.IntegerField(), allow_empty=False)
+
+    def validate_fecha_compromiso(self, value):
+        if value < date.today():
+            raise serializers.ValidationError("La fecha de compromiso no puede ser anterior a hoy.")
+        return value
+
+    def validate(self, attrs):
+        credito = self.context["credito"]
+        vencidas = set(
+            Cuota.objects.filter(credito_id=credito, estado=CuotaEstado.VENCIDA).values_list("id", flat=True)
+        )
+        seleccionadas = set(attrs["cuota_ids"])
+        if not seleccionadas.issubset(vencidas):
+            raise serializers.ValidationError(
+                {"cuota_ids": "Todas las cuotas deben pertenecer al crédito y estar vencidas."}
+            )
+
+        ultima = CRMFila.objects.para_credito(credito).first()
+        if not ultima or not ultima.fecha_contacto:
+            raise serializers.ValidationError(
+                {"fecha_contacto": "Debe registrar la fecha de contacto antes de crear el compromiso."}
+            )
+
+        attrs["_vencidas_ids"] = vencidas
+        return attrs
 
 
 class CuotaSerializer(serializers.ModelSerializer):
@@ -28,6 +72,7 @@ class CuotaSerializer(serializers.ModelSerializer):
             "estado",
             "fecha",
             "monto",
+            "crm_fila_id",
         )
 
 

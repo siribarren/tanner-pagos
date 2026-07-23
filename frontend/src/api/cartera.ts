@@ -70,3 +70,30 @@ export async function getCarteraDetalle(creditoId: string): Promise<CarteraDetal
   if (error || !data) throw new Error("No fue posible cargar el detalle del crédito");
   return data;
 }
+
+export type CrmFila = paths["/api/cartera/{id}/contacto/"]["post"]["responses"][200]["content"]["application/json"];
+
+export async function guardarFechaContacto(creditoId: string, fechaContacto: string): Promise<CrmFila> {
+  const { data, error } = await apiClient.POST("/api/cartera/{id}/contacto/", {
+    params: { path: { id: Number(creditoId) } },
+    body: { fecha_contacto: fechaContacto },
+  });
+  if (error || !data) throw new Error("No fue posible guardar la fecha de contacto");
+  return data;
+}
+
+export type CrearCompromisoInput = {
+  fecha_compromiso: string;
+  canal_contacto: "telefono" | "whatsapp" | "presencial";
+  monto: number;
+  cuota_ids: number[];
+};
+
+export async function crearCompromiso(creditoId: string, input: CrearCompromisoInput): Promise<CrmFila> {
+  const { data, error } = await apiClient.POST("/api/cartera/{id}/compromiso/", {
+    params: { path: { id: Number(creditoId) } },
+    body: input,
+  });
+  if (error || !data) throw new Error("No fue posible crear el compromiso");
+  return data;
+}

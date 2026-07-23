@@ -89,10 +89,14 @@ export default function App() {
 
   const [carteraBase, setCarteraBase] = useState<CarteraItem[]>([]);
 
-  useEffect(() => {
+  const refetchCartera = () => {
     getCartera()
       .then(setCarteraBase)
       .catch((error) => console.error(error));
+  };
+
+  useEffect(() => {
+    refetchCartera();
   }, []);
 
   const cartera = carteraBase;
@@ -169,7 +173,7 @@ export default function App() {
       <Shell screen={screen} rol={rol} navigate={navigate} onChangeRol={changeRol} onLogout={() => setLoggedIn(false)}>
         {screen === "panel"            && <Panel            rol={rol} cartera={cartera} navigate={navigate} onSync={startSync} abrirDetalle={abrirDetalle} abrirCompromiso={abrirCompromiso} irACompromisos={irACompromisos} irAPagos={irAPagos} />}
         {screen === "buscar"           && <Buscar            cartera={cartera} navigate={navigate} onSync={startSync} abrirCompromiso={abrirCompromiso} filtroSituacionInicial={compromisoFiltroInicial as SituacionFiltro} />}
-        {screen === "compromiso_nuevo" && <CompromisoNuevo   idCredito={detalleIdCredito} navigate={navigate} />}
+        {screen === "compromiso_nuevo" && <CompromisoNuevo   idCredito={detalleIdCredito} navigate={navigate} refetchCartera={refetchCartera} />}
         {screen === "compromiso"       && <CompromisoDetalle navigate={navigate} tipo={detalleTipo} idCredito={detalleIdCredito} solcob={detalleSolcob} />}
         {screen === "pagos"            && <PagosEnviados     navigate={navigate} onSync={startSync} abrirDetalle={abrirDetalle} filtroEstadoInicial={pagoFiltroInicial as EstadoFiltro} />}
         {screen === "comprobante"      && <Comprobante       navigate={navigate} idCredito={detalleIdCredito} />}

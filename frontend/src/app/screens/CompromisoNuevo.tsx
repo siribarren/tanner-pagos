@@ -1,16 +1,22 @@
 import { useEffect, useState } from "react";
 import { Calendar, Check, Plus, Sparkles } from "lucide-react";
+import Swal from "sweetalert2";
 import { C, clp } from "../theme";
-import { getCarteraDetalle, type CarteraDetalle } from "../../api/cartera";
+import { getCarteraDetalle, guardarFechaContacto, crearCompromiso, type CarteraDetalle } from "../../api/cartera";
 import type { Screen } from "../types";
 import { Badge, Btn, Card, Chip } from "../ui";
-import { ProgressModal, type ProgressStep } from "../ProgressModal";
 import { DatePicker } from "../DatePicker";
 
 // ════════════════════════════════════════════════════════════════════════════════
 // CREACIÓN DE COMPROMISO (doc §14.2) — desglose oficial desde Mónaco
 // ════════════════════════════════════════════════════════════════════════════════
 const CANALES = ["Teléfono", "WhatsApp", "Presencial"];
+
+const CANAL_API: Record<string, "telefono" | "whatsapp" | "presencial"> = {
+  "Teléfono": "telefono",
+  "WhatsApp": "whatsapp",
+  "Presencial": "presencial",
+};
 
 const hoyISO = () => new Date().toISOString().slice(0, 10);
 
@@ -25,7 +31,6 @@ type CuotaSeleccionable = {
 
 type InfoCompromisoNuevo = {
   rut: string;
-  fechaContacto?: string;
   estado?: string;
   pago?: string;
   situacion?: string;
@@ -59,53 +64,38 @@ function mapearCuota(cuota: CarteraDetalle["cuotas"][number]): CuotaSeleccionabl
   };
 }
 
-type ModalPaso = "cerrado" | "confirmar" | "progreso";
+type ModalPaso = "cerrado" | "confirmar";
 
-const PASOS_GENERAR_COMPROMISO: ProgressStep[] = [
-  {
-    key: "generar",
-    title: "Generando el compromiso",
-    runningText: "Registrando fecha, monto y canal de contacto en la plataforma.",
-    successText: "Compromiso generado con éxito y registrado en la plataforma.",
-    errorText: "Error al generar el compromiso. No se pudo registrar en la plataforma.",
-  },
-  {
-    key: "enviar",
-    title: "Enviando compromiso al cliente por WhatsApp / mail",
-    runningText: "Notificando al cliente por el canal seleccionado.",
-    successText: "Compromiso enviado con éxito al cliente.",
-    errorText: "Error al enviar el compromiso al cliente. Intenta nuevamente.",
-  },
-];
-
-const PROGRESO_RESUMEN = {
-  running: "Estamos generando el compromiso y notificando al cliente. El proceso puede tardar unos segundos.",
-  success: "El compromiso quedó generado y fue enviado correctamente al cliente.",
-  error: "Se detectó un error al generar el compromiso. Puedes cerrar la ventana o reintentar el proceso completo.",
-};
-
-export function CompromisoNuevo({ idCredito, navigate }: {
+export function CompromisoNuevo({ idCredito, navigate, refetchCartera }: {
   idCredito: string;
   navigate: (s: Screen) => void;
+  refetchCartera: () => void;
 }) {
   const [info, setInfo] = useState<InfoCompromisoNuevo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sel, setSel] = useState<number[]>([]);
   const [canal, setCanal] = useState("Teléfono");
-  const [fecha, setFecha] = useState(hoyISO());
   const [montoManual, setMontoManual] = useState<number>(0);
   const [modal, setModal] = useState<ModalPaso>("cerrado");
-  const [progresoRunId, setProgresoRunId] = useState(0);
   const [montoFocused, setMontoFocused] = useState(false);
+  const [creando, setCreando] = useState(false);
 
-  // Reprogramar contacto: la única pantalla donde se puede cambiar esta fecha
-  // (en "Mi cartera" la fecha de contacto es solo lectura). Override en memoria,
-  // se pierde al recargar, igual que el resto de los datos de ejemplo.
+  // Fecha de contacto: se guarda en el backend apenas se confirma (debe
+  // sobrevivir un refresh, ya que la selección de cuotas queda gateada a que
+  // exista).
+  const [fechaContacto, setFechaContacto] = useState<string | null>(null);
   const [reprogramando, setReprogramando] = useState(false);
   const [nuevoContactoISO, setNuevoContactoISO] = useState("");
-  const [contactoOverride, setContactoOverride] = useState<string | null>(null);
-  const fechaContactoActual = contactoOverride ?? info?.fechaContacto;
+  const [guardandoContacto, setGuardandoContacto] = useState(false);
+  const [errorContacto, setErrorContacto] = useState<string | null>(null);
+
+  // Fecha de compromiso: solo se habilita una vez existe fecha de contacto.
+  // Su "Guardar" es local únicamente — el valor real se persiste recién al
+  // crear el compromiso (el POST de creación ya lleva esta fecha en el body).
+  const [fechaCompromiso, setFechaCompromiso] = useState<string | null>(null);
+  const [editandoCompromiso, setEditandoCompromiso] = useState(false);
+  const [nuevoCompromisoISO, setNuevoCompromisoISO] = useState("");
 
   useEffect(() => {
     let activo = true;
@@ -113,7 +103,11 @@ export function CompromisoNuevo({ idCredito, navigate }: {
     setError(null);
     setInfo(null);
     setSel([]);
-    setContactoOverride(null);
+    setFechaContacto(null);
+    setFechaCompromiso(null);
+    setReprogramando(false);
+    setEditandoCompromiso(false);
+    setErrorContacto(null);
 
     getCarteraDetalle(idCredito)
       .then((detalle) => {
@@ -121,15 +115,13 @@ export function CompromisoNuevo({ idCredito, navigate }: {
         const cuotas = detalle.cuotas.map(mapearCuota);
         setInfo({
           rut: detalle.credito.rut,
-          fechaContacto: detalle.crm?.fecha_contacto
-            ? formatoFechaCorta(detalle.crm.fecha_contacto)
-            : undefined,
           estado: detalle.crm?.estado?.toUpperCase(),
           pago: detalle.crm?.pago?.toUpperCase(),
           situacion: detalle.crm?.situacion?.toUpperCase(),
           cuotas,
         });
-        setSel(cuotas.filter((cuota) => cuota.estado === "VENCIDA").map((cuota) => cuota.num));
+        setFechaContacto(detalle.crm?.fecha_contacto ?? null);
+        setFechaCompromiso(detalle.crm?.fecha_compromiso ?? null);
       })
       .catch(() => {
         if (activo) setError("No fue posible cargar las cuotas del crédito.");
@@ -143,11 +135,29 @@ export function CompromisoNuevo({ idCredito, navigate }: {
     };
   }, [idCredito]);
 
-  const confirmarReprogramarContacto = () => {
-    if (nuevoContactoISO) setContactoOverride(formatoFechaCorta(nuevoContactoISO));
-    setReprogramando(false);
-    setNuevoContactoISO("");
+  const confirmarContacto = async () => {
+    if (!nuevoContactoISO) return;
+    setGuardandoContacto(true);
+    setErrorContacto(null);
+    try {
+      const fila = await guardarFechaContacto(idCredito, nuevoContactoISO);
+      setFechaContacto(fila.fecha_contacto ?? nuevoContactoISO);
+      setReprogramando(false);
+      setNuevoContactoISO("");
+    } catch {
+      setErrorContacto("No fue posible guardar la fecha de contacto.");
+    } finally {
+      setGuardandoContacto(false);
+    }
   };
+
+  const confirmarCompromisoFecha = () => {
+    if (nuevoCompromisoISO) setFechaCompromiso(nuevoCompromisoISO);
+    setEditandoCompromiso(false);
+    setNuevoCompromisoISO("");
+  };
+
+  const ambasFechasListas = Boolean(fechaContacto && fechaCompromiso);
 
   const toggle = (n: number) => setSel(p => p.includes(n) ? p.filter(x => x !== n) : [...p, n]);
   const cuotas = info?.cuotas ?? [];
@@ -160,13 +170,39 @@ export function CompromisoNuevo({ idCredito, navigate }: {
   const saf = montoManual - totalCuotas;
   const deudaTotal = cuotas.reduce((s, c) => s + c.aPagar, 0);
 
-  const generar = () => {
-    setModal("progreso");
-    setProgresoRunId((current) => current + 1);
+  const generar = async () => {
+    if (!fechaCompromiso) return;
+    setCreando(true);
+    try {
+      await crearCompromiso(idCredito, {
+        fecha_compromiso: fechaCompromiso,
+        canal_contacto: CANAL_API[canal],
+        monto: montoManual,
+        cuota_ids: sel,
+      });
+      setModal("cerrado");
+      refetchCartera();
+      await Swal.fire({
+        icon: "success",
+        title: "Compromiso generado",
+        text: "El compromiso quedó registrado correctamente.",
+      });
+      navigate("buscar");
+    } catch {
+      await Swal.fire({
+        icon: "error",
+        title: "No fue posible generar el compromiso",
+        text: "Intenta nuevamente.",
+      });
+    } finally {
+      setCreando(false);
+    }
   };
-  const reintentarGenerar = () => setProgresoRunId((current) => current + 1);
 
-  const botonLabel = sel.length
+  const puedeCrear = ambasFechasListas && sel.length > 0;
+  const botonLabel = !ambasFechasListas
+    ? "Registra fecha de contacto y de compromiso"
+    : sel.length
     ? `Crear compromiso por ${clp(montoManual)}`
     : "Selecciona al menos una cuota";
 
@@ -195,8 +231,8 @@ export function CompromisoNuevo({ idCredito, navigate }: {
         <Btn
           label={botonLabel}
           icon={Plus}
-          onClick={() => sel.length && setModal("confirmar")}
-          variant={sel.length ? "primary" : "ghost"}
+          onClick={() => puedeCrear && setModal("confirmar")}
+          variant={puedeCrear ? "primary" : "ghost"}
         />
       </div>
 
@@ -220,11 +256,11 @@ export function CompromisoNuevo({ idCredito, navigate }: {
             {reprogramando ? (
               <div onClick={(e) => e.stopPropagation()} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "8px" }}>
                 <div style={{ flex: "1 1 160px", minWidth: 0 }}><DatePicker value={nuevoContactoISO} onChange={setNuevoContactoISO} min={hoyISO()} /></div>
-                <Btn label="Guardar" onClick={confirmarReprogramarContacto} disabled={!nuevoContactoISO} />
+                <Btn label={guardandoContacto ? "Guardando..." : "Guardar"} onClick={confirmarContacto} disabled={!nuevoContactoISO || guardandoContacto} />
               </div>
             ) : (
               <>
-                <div style={{ fontSize: "18px", fontWeight: 800, fontFamily: C.mono, color: fechaContactoActual ? C.blue : C.muted, letterSpacing: "-0.03em" }}>{fechaContactoActual || "No definido"}</div>
+                <div style={{ fontSize: "18px", fontWeight: 800, fontFamily: C.mono, color: fechaContacto ? C.blue : C.muted, letterSpacing: "-0.03em" }}>{fechaContacto ? formatoFechaCorta(fechaContacto) : "No definido"}</div>
                 <button
                   type="button"
                   onClick={() => { setReprogramando(true); setNuevoContactoISO(""); }}
@@ -235,14 +271,40 @@ export function CompromisoNuevo({ idCredito, navigate }: {
                   }}
                 >
                   <Calendar size={13} />
-                  {fechaContactoActual ? "Reprogramar contacto" : "Programar contacto"}
+                  {fechaContacto ? "Reprogramar contacto" : "Programar contacto"}
                 </button>
+                {errorContacto && (
+                  <div style={{ marginTop: "6px", fontSize: "11px", color: C.red }}>{errorContacto}</div>
+                )}
               </>
             )}
           </Card>
           <Card style={{ padding: "16px 16px", minHeight: "84px", background: C.blueSoft, border: "1px solid rgba(0,92,185,0.18)" }}>
             <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted, marginBottom: "8px" }}>Fecha de compromiso</div>
-            <DatePicker value={fecha} onChange={setFecha} min={hoyISO()} />
+            {!fechaContacto ? (
+              <div style={{ fontSize: "12px", color: C.muted, fontWeight: 600, lineHeight: 1.4 }}>Registra primero la fecha de contacto</div>
+            ) : editandoCompromiso ? (
+              <div onClick={(e) => e.stopPropagation()} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "8px" }}>
+                <div style={{ flex: "1 1 160px", minWidth: 0 }}><DatePicker value={nuevoCompromisoISO} onChange={setNuevoCompromisoISO} min={hoyISO()} /></div>
+                <Btn label="Guardar" onClick={confirmarCompromisoFecha} disabled={!nuevoCompromisoISO} />
+              </div>
+            ) : (
+              <>
+                <div style={{ fontSize: "18px", fontWeight: 800, fontFamily: C.mono, color: fechaCompromiso ? C.blue : C.muted, letterSpacing: "-0.03em" }}>{fechaCompromiso ? formatoFechaCorta(fechaCompromiso) : "No definido"}</div>
+                <button
+                  type="button"
+                  onClick={() => { setEditandoCompromiso(true); setNuevoCompromisoISO(""); }}
+                  style={{
+                    marginTop: "8px", display: "inline-flex", alignItems: "center", gap: "6px",
+                    background: "transparent", border: "none", padding: 0,
+                    color: C.blue, fontSize: "12px", fontWeight: 700, cursor: "pointer",
+                  }}
+                >
+                  <Calendar size={13} />
+                  {fechaCompromiso ? "Reprogramar compromiso" : "Programar compromiso"}
+                </button>
+              </>
+            )}
           </Card>
           <Card style={{ padding: "16px 16px", minHeight: "84px", background: "#f1f5f9", border: `1px solid ${C.border}` }}>
             <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted, marginBottom: "8px" }}>Fecha de pago</div>
@@ -318,18 +380,25 @@ export function CompromisoNuevo({ idCredito, navigate }: {
             <div style={{ padding: "20px", color: C.muted, fontSize: "13px" }}>Este crédito no tiene cuotas registradas.</div>
           ) : cuotas.map((c, i) => {
             const active = sel.includes(c.num);
+            const seleccionable = c.estado === "VENCIDA" && ambasFechasListas;
             return (
-              <button key={c.num} onClick={() => toggle(c.num)} style={{
-                display: "grid",
-                gridTemplateColumns: "32px 1fr auto auto",
-                alignItems: "center", gap: "14px",
-                width: "100%", padding: "16px 20px",
-                background: active ? "rgba(0,92,185,0.04)" : "transparent",
-                border: "none",
-                borderBottom: i < cuotas.length - 1 ? `1px solid ${C.border}` : "none",
-                boxShadow: active ? "inset 4px 0 0 " + C.blue : "none",
-                cursor: "pointer", textAlign: "left",
-              }}>
+              <button
+                key={c.num}
+                onClick={() => seleccionable && toggle(c.num)}
+                disabled={!seleccionable}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "32px 1fr auto auto",
+                  alignItems: "center", gap: "14px",
+                  width: "100%", padding: "16px 20px",
+                  background: active ? "rgba(0,92,185,0.04)" : "transparent",
+                  border: "none",
+                  borderBottom: i < cuotas.length - 1 ? `1px solid ${C.border}` : "none",
+                  boxShadow: active ? "inset 4px 0 0 " + C.blue : "none",
+                  cursor: seleccionable ? "pointer" : "not-allowed",
+                  opacity: seleccionable ? 1 : 0.55,
+                  textAlign: "left",
+                }}>
                 {/* Checkbox */}
                 <div style={{
                   width: "20px", height: "20px", borderRadius: "6px",
@@ -383,7 +452,7 @@ export function CompromisoNuevo({ idCredito, navigate }: {
         </Card>
 
         {/* Selection total */}
-        {sel.length > 0 && (
+        {sel.length > 0 && fechaCompromiso && (
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
             padding: "16px 20px", borderRadius: "14px",
@@ -393,7 +462,7 @@ export function CompromisoNuevo({ idCredito, navigate }: {
             marginBottom: "16px",
           }}>
             <span style={{ fontSize: "14px", fontWeight: 700, color: "#0b2e61" }}>
-              {sel.length} cuota{sel.length > 1 ? "s" : ""} · Monto comprometido ({formatoFechaLarga(fecha)})
+              {sel.length} cuota{sel.length > 1 ? "s" : ""} · Monto comprometido ({formatoFechaLarga(fechaCompromiso)})
             </span>
             <span style={{ fontSize: "24px", fontWeight: 800, color: C.blue, fontFamily: C.mono, letterSpacing: "-0.04em" }}>
               {clp(montoManual)}
@@ -401,10 +470,10 @@ export function CompromisoNuevo({ idCredito, navigate }: {
           </div>
         )}
 
-        <Btn label={botonLabel} icon={Plus} onClick={() => sel.length && setModal("confirmar")} full />
+        <Btn label={botonLabel} icon={Plus} onClick={() => puedeCrear && setModal("confirmar")} full />
       </div>
 
-      {modal === "confirmar" && (
+      {modal === "confirmar" && fechaCompromiso && (
         <div style={{
           position: "fixed", inset: 0, zIndex: 80,
           background: "rgba(8, 15, 31, 0.48)", backdropFilter: "blur(10px)",
@@ -417,28 +486,15 @@ export function CompromisoNuevo({ idCredito, navigate }: {
           }}>
             <div style={{ fontSize: "18px", fontWeight: 800, color: C.navy, marginBottom: "10px" }}>Confirmar compromiso</div>
             <p style={{ margin: "0 0 22px", fontSize: "13px", color: C.muted, lineHeight: 1.5 }}>
-              Vas a crear un compromiso de pago por {clp(montoManual)} para el {formatoFechaLarga(fecha)}, vía {canal.toLowerCase()}.
+              Vas a crear un compromiso de pago por {clp(montoManual)} para el {formatoFechaLarga(fechaCompromiso)}, vía {canal.toLowerCase()}.
             </p>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
-              <Btn label="Cancelar" variant="outline" onClick={() => setModal("cerrado")} />
-              <Btn label="Confirmar" onClick={generar} />
+              <Btn label="Cancelar" variant="outline" onClick={() => setModal("cerrado")} disabled={creando} />
+              <Btn label={creando ? "Creando..." : "Confirmar"} onClick={generar} disabled={creando} />
             </div>
           </div>
         </div>
       )}
-
-      <ProgressModal
-        open={modal === "progreso"}
-        runId={progresoRunId}
-        title="Generando compromiso"
-        warningText="no cierres esta ventana mientras se genera el compromiso."
-        steps={PASOS_GENERAR_COMPROMISO}
-        resumen={PROGRESO_RESUMEN}
-        totalSeconds={5}
-        onClose={() => { setModal("cerrado"); navigate("buscar"); }}
-        onRetry={reintentarGenerar}
-        onSuccess={() => undefined}
-      />
     </>
   );
 }

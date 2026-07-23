@@ -36,6 +36,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/cartera/{id}/compromiso/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["cartera_compromiso_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cartera/{id}/contacto/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["cartera_contacto_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -48,9 +80,11 @@ export interface components {
             fecha_compromiso?: string | null;
             /** Format: date */
             fecha_pago?: string | null;
+            canal_contacto?: components["schemas"]["CanalContactoEnum"];
             estado?: (components["schemas"]["CRMFilaEstadoEnum"] | components["schemas"]["NullEnum"]) | null;
             pago?: (components["schemas"]["PagoEnum"] | components["schemas"]["NullEnum"]) | null;
             situacion?: (components["schemas"]["SituacionEnum"] | components["schemas"]["NullEnum"]) | null;
+            monto?: number | null;
         };
         /**
          * @description * `comprometido` - Comprometido
@@ -59,6 +93,13 @@ export interface components {
          * @enum {string}
          */
         CRMFilaEstadoEnum: "comprometido" | "sin_compromiso" | "pagado";
+        /**
+         * @description * `telefono` - Teléfono
+         *     * `whatsapp` - WhatsApp
+         *     * `presencial` - Presencial
+         * @enum {string}
+         */
+        CanalContactoEnum: "telefono" | "whatsapp" | "presencial";
         CarteraDetail: {
             readonly credito: components["schemas"]["CreditoResumen"];
             readonly crm: components["schemas"]["CRMFila"] | null;
@@ -74,11 +115,23 @@ export interface components {
             readonly fecha_compromiso: string | null;
             /** Format: date */
             readonly fecha_pago: string | null;
+            readonly canal_contacto: (components["schemas"]["CanalContactoEnum"] | components["schemas"]["NullEnum"]) | null;
             readonly estado: (components["schemas"]["CRMFilaEstadoEnum"] | components["schemas"]["NullEnum"]) | null;
             readonly pago: (components["schemas"]["PagoEnum"] | components["schemas"]["NullEnum"]) | null;
             readonly situacion: (components["schemas"]["SituacionEnum"] | components["schemas"]["NullEnum"]) | null;
             cuotas: number;
             monto: number;
+        };
+        CompromisoCreate: {
+            /** Format: date */
+            fecha_compromiso: string;
+            canal_contacto: components["schemas"]["CanalContactoEnum"];
+            monto: number;
+            cuota_ids: number[];
+        };
+        ContactoCreate: {
+            /** Format: date */
+            fecha_contacto: string;
         };
         CreditoResumen: {
             id: number;
@@ -91,6 +144,7 @@ export interface components {
             /** Format: date */
             fecha: string;
             monto: number;
+            crm_fila_id?: number | null;
         };
         /**
          * @description * `vencida` - Vencida
@@ -158,6 +212,62 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CarteraDetail"];
+                };
+            };
+        };
+    };
+    cartera_compromiso_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this credito. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompromisoCreate"];
+                "application/x-www-form-urlencoded": components["schemas"]["CompromisoCreate"];
+                "multipart/form-data": components["schemas"]["CompromisoCreate"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CRMFila"];
+                };
+            };
+        };
+    };
+    cartera_contacto_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this credito. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContactoCreate"];
+                "application/x-www-form-urlencoded": components["schemas"]["ContactoCreate"];
+                "multipart/form-data": components["schemas"]["ContactoCreate"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CRMFila"];
                 };
             };
         };

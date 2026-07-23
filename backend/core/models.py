@@ -1,6 +1,6 @@
 from django.db import models
 from .choices import CanalContacto, EstadoCRM, TipoPago, Situacion, CuotaEstado
-from .managers import RequestCacheManager
+from .managers import CRMFilaManager, CuotaManager, RequestCacheManager
 # Create your models here.
 
 #CREDITO
@@ -30,6 +30,9 @@ class CRMFila(models.Model):
     estado = models.CharField(max_length=20, choices=EstadoCRM.choices, null=True)
     pago = models.CharField(max_length=20, choices=TipoPago, null=True)
     situacion = models.CharField(max_length=20, choices=Situacion, null=True)
+    monto = models.IntegerField(null=True)
+
+    objects = CRMFilaManager()
 
     def __str__(self):
         return f"Credito: {self.credito_id}, Fecha. Cont: {self.fecha_contacto}, Estado: {self.estado}"
@@ -52,6 +55,12 @@ class Cuota(models.Model):
     estado = models.CharField(max_length=20, choices=CuotaEstado.choices)
     fecha = models.DateField()
     monto = models.IntegerField()
+    crm_fila_id = models.ForeignKey(
+        CRMFila, null=True, blank=True, on_delete=models.SET_NULL,
+        db_column='crm_fila_id', related_name='cuotas',
+    )
+
+    objects = CuotaManager()
 
     def __str__(self):
         return f"Cuota: {self.fecha} por {self.monto}"

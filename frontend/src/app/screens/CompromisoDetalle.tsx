@@ -68,7 +68,7 @@ export function CompromisoDetalle({ navigate, tipo = "compromiso", idCredito, so
   const pago = statusKey(crm?.pago);
   const situacion = crm?.situacion ? `SITUACION_${statusKey(crm.situacion)}` : undefined;
   const monto = detalle.cuotas
-    .filter((cuota) => cuota.estado === "vencida")
+    .filter((cuota) => crm?.id != null && cuota.crm_fila_id === crm.id)
     .reduce((total, cuota) => total + cuota.monto, 0);
 
   return (
@@ -133,7 +133,7 @@ export function CompromisoDetalle({ navigate, tipo = "compromiso", idCredito, so
             {situacion ? <Badge s={situacion} /> : <span style={{ color: C.muted, fontSize: "12px" }}>No definido</span>}
           </Card>
           <Card style={{ padding: "18px 18px", minHeight: "92px", background: C.blueSoft, border: "1px solid rgba(0,92,185,0.18)" }}>
-            <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", color: C.muted }}>Monto</div>
+            <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", color: C.muted }}>Monto a validar</div>
             <div style={{ marginTop: "5px", fontSize: "18px", fontWeight: 800, fontFamily: C.mono, color: C.blue }}>{clp(monto)}</div>
           </Card>
         </div>
@@ -150,14 +150,21 @@ export function CompromisoDetalle({ navigate, tipo = "compromiso", idCredito, so
                 </tr>
               </thead>
               <tbody>
-                {detalle.cuotas.map((cuota, index) => (
-                  <tr key={cuota.id} style={{ borderBottom: index < detalle.cuotas.length - 1 ? `1px solid ${C.border}` : "none" }}>
-                    <td style={{ padding: "14px 16px", fontSize: "13px", fontWeight: 800, color: C.navy }}>Cuota {index + 1}</td>
-                    <td style={{ padding: "14px 16px", fontSize: "13px", fontFamily: C.mono, color: C.navy, textAlign: "right" }}>{formatDate(cuota.fecha)}</td>
-                    <td style={{ padding: "14px 16px", textAlign: "right" }}><Badge s={cuota.estado.toUpperCase()} /></td>
-                    <td style={{ padding: "14px 16px", fontSize: "14px", fontWeight: 800, fontFamily: C.mono, color: C.navy, textAlign: "right" }}>{clp(cuota.monto)}</td>
-                  </tr>
-                ))}
+                {detalle.cuotas.map((cuota, index) => {
+                  const comprometida = crm?.id != null && cuota.crm_fila_id === crm.id;
+                  return (
+                    <tr key={cuota.id} style={{
+                      borderBottom: index < detalle.cuotas.length - 1 ? `1px solid ${C.border}` : "none",
+                      background: comprometida ? "rgba(0,92,185,0.04)" : "transparent",
+                      boxShadow: comprometida ? "inset 4px 0 0 " + C.blue : "none",
+                    }}>
+                      <td style={{ padding: "14px 16px", fontSize: "13px", fontWeight: 800, color: C.navy }}>Cuota {index + 1}</td>
+                      <td style={{ padding: "14px 16px", fontSize: "13px", fontFamily: C.mono, color: C.navy, textAlign: "right" }}>{formatDate(cuota.fecha)}</td>
+                      <td style={{ padding: "14px 16px", textAlign: "right" }}><Badge s={cuota.estado.toUpperCase()} /></td>
+                      <td style={{ padding: "14px 16px", fontSize: "14px", fontWeight: 800, fontFamily: C.mono, color: C.navy, textAlign: "right" }}>{clp(cuota.monto)}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
