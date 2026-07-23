@@ -71,7 +71,7 @@ const SYNC_RESUMEN = {
 };
 
 export default function App() {
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(() => !!localStorage.getItem("accessToken"));
   const [screen, setScreen] = useState<Screen>("panel");
   const [rol, setRol] = useState<Rol>("ejecutivo");
   const [syncOpen, setSyncOpen] = useState(false);
@@ -96,8 +96,8 @@ export default function App() {
   };
 
   useEffect(() => {
-    refetchCartera();
-  }, []);
+    if (loggedIn) refetchCartera();
+  }, [loggedIn]);
 
   const cartera = carteraBase;
 
@@ -170,7 +170,7 @@ export default function App() {
 
   return (
     <>
-      <Shell screen={screen} rol={rol} navigate={navigate} onChangeRol={changeRol} onLogout={() => setLoggedIn(false)}>
+      <Shell screen={screen} rol={rol} navigate={navigate} onChangeRol={changeRol} onLogout={() => { localStorage.removeItem("accessToken"); localStorage.removeItem("refreshToken"); setLoggedIn(false); }}>
         {screen === "panel"            && <Panel            rol={rol} cartera={cartera} navigate={navigate} onSync={startSync} abrirDetalle={abrirDetalle} abrirCompromiso={abrirCompromiso} irACompromisos={irACompromisos} irAPagos={irAPagos} />}
         {screen === "buscar"           && <Buscar            cartera={cartera} navigate={navigate} onSync={startSync} abrirCompromiso={abrirCompromiso} filtroSituacionInicial={compromisoFiltroInicial as SituacionFiltro} />}
         {screen === "compromiso_nuevo" && <CompromisoNuevo   idCredito={detalleIdCredito} navigate={navigate} refetchCartera={refetchCartera} />}

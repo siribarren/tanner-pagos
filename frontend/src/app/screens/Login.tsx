@@ -6,6 +6,15 @@ export function Login({ onLogin }: { onLogin: () => void }) {
   const [u, setU] = useState("");
   const [p, setP] = useState("");
 
+  // ponytail: sin credenciales — pide el token al backend y lo guarda.
+  async function ingresar() {
+    const r = await fetch("/api/token/", { method: "POST" });
+    const { access, refresh } = await r.json();
+    localStorage.setItem("accessToken", access);
+    localStorage.setItem("refreshToken", refresh);
+    onLogin();
+  }
+
   const inp: React.CSSProperties = {
     width: "100%", height: "48px", padding: "0 16px",
     borderRadius: "12px", border: "1px solid rgba(2,73,147,0.12)",
@@ -53,7 +62,7 @@ export function Login({ onLogin }: { onLogin: () => void }) {
             </div>
           </div>
 
-          <button onClick={onLogin} style={{
+          <button onClick={ingresar} style={{
             width: "100%", height: "50px", borderRadius: "14px",
             background: "linear-gradient(180deg,#0b5ab7,#0750a6)",
             border: "none", color: "#fff", fontSize: "15px", fontWeight: 700,

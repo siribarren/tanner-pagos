@@ -1,9 +1,21 @@
+from django.contrib.auth.models import User
 from django.db.models import Count, Prefetch, Q, Sum, Value
 from django.db.models.functions import Coalesce
 from rest_framework import viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
 from drf_spectacular.utils import extend_schema
+
+
+# ponytail: emite JWT sin validar credenciales — prototipo, no auth real.
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def obtener_token(request):
+    user, _ = User.objects.get_or_create(username="prototipo")
+    refresh = RefreshToken.for_user(user)
+    return Response({"access": str(refresh.access_token), "refresh": str(refresh)})
 
 from .choices import CuotaEstado
 from .email_service import enviar_compromiso_creado
