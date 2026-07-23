@@ -1,5 +1,5 @@
 from django.db import models
-from .choices import EstadoCRM, TipoPago, Situacion, CuotaEstado
+from .choices import CanalContacto, EstadoCRM, TipoPago, Situacion, CuotaEstado
 from .managers import RequestCacheManager
 # Create your models here.
 
@@ -22,6 +22,11 @@ class CRMFila(models.Model):
     fecha_contacto = models.DateField(null=True)
     fecha_compromiso = models.DateField(null=True)
     fecha_pago = models.DateField(null=True)
+    canal_contacto = models.CharField(
+        max_length=20,
+        choices=CanalContacto.choices,
+        default=CanalContacto.TELEFONO,
+    )
     estado = models.CharField(max_length=20, choices=EstadoCRM.choices, null=True)
     pago = models.CharField(max_length=20, choices=TipoPago, null=True)
     situacion = models.CharField(max_length=20, choices=Situacion, null=True)
@@ -31,6 +36,14 @@ class CRMFila(models.Model):
 
     class Meta:
         db_table = 'db_crm_fila'
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(
+                    canal_contacto__in=[choice.value for choice in CanalContacto]
+                ),
+                name='crm_fila_canal_contacto_valid',
+            ),
+        ]
 
 # CUOTA -> HEREDA CREDITO_ID
 class Cuota(models.Model):

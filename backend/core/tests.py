@@ -1,9 +1,10 @@
 from datetime import date
 
+from django.db import IntegrityError
 from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 
-from .choices import CuotaEstado, EstadoCRM, Situacion, TipoPago
+from .choices import CanalContacto, CuotaEstado, EstadoCRM, Situacion, TipoPago
 from .models import CRMFila, Credito, Cuota
 
 
@@ -46,6 +47,7 @@ class CarteraApiTests(TestCase):
         self.assertEqual(item["monto"], 100000)
         self.assertEqual(item["estado"], EstadoCRM.COMPROMETIDO)
         self.assertEqual(item["situacion"], Situacion.PENDIENTE)
+        self.assertEqual(item["canal_contacto"], CanalContacto.TELEFONO)
 
     def test_detalle_devuelve_crm_y_cuotas(self):
         response = self.client.get(f"/api/cartera/{self.credito.id}/")
@@ -54,4 +56,12 @@ class CarteraApiTests(TestCase):
         payload = response.json()
         self.assertEqual(payload["credito"]["cliente"], "Cliente de prueba")
         self.assertEqual(payload["crm"]["pago"], TipoPago.PARCIAL)
+        self.assertEqual(payload["crm"]["canal_contacto"], CanalContacto.TELEFONO)
         self.assertEqual(len(payload["cuotas"]), 2)
+
+    def test_canal_contacto_solo_acepta_valores_permitidos(self):
+        with self.assertRaises(IntegrityError):
+            CRMFila.objects.create(
+                credito_id=self.credito,
+                canal_contacto="email",
+            )

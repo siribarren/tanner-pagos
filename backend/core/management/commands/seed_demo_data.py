@@ -6,7 +6,7 @@ from django.core.management.color import no_style
 from django.core.management.base import BaseCommand
 from django.db import connection, transaction
 
-from core.choices import CuotaEstado, EstadoCRM, Situacion, TipoPago
+from core.choices import CanalContacto, CuotaEstado, EstadoCRM, Situacion, TipoPago
 from core.models import CRMFila, Credito, Cuota
 
 
@@ -18,6 +18,7 @@ CREDITOS = {
             "fecha_contacto": date(2026, 7, 1),
             "fecha_compromiso": date(2026, 7, 15),
             "fecha_pago": None,
+            "canal_contacto": CanalContacto.TELEFONO,
             "estado": EstadoCRM.COMPROMETIDO,
             "pago": TipoPago.PARCIAL,
             "situacion": Situacion.PENDIENTE,
@@ -31,6 +32,7 @@ CREDITOS = {
             "fecha_contacto": date(2026, 6, 28),
             "fecha_compromiso": date(2026, 7, 12),
             "fecha_pago": date(2026, 7, 13),
+            "canal_contacto": CanalContacto.TELEFONO,
             "estado": EstadoCRM.COMPROMETIDO,
             "pago": TipoPago.PARCIAL,
             "situacion": Situacion.VALIDADO,
@@ -44,6 +46,7 @@ CREDITOS = {
             "fecha_contacto": date(2026, 7, 2),
             "fecha_compromiso": date(2026, 7, 18),
             "fecha_pago": None,
+            "canal_contacto": CanalContacto.TELEFONO,
             "estado": EstadoCRM.COMPROMETIDO,
             "pago": TipoPago.TOTAL,
             "situacion": Situacion.PENDIENTE,
@@ -57,6 +60,7 @@ CREDITOS = {
             "fecha_contacto": date(2026, 6, 25),
             "fecha_compromiso": None,
             "fecha_pago": None,
+            "canal_contacto": CanalContacto.TELEFONO,
             "estado": EstadoCRM.SIN_COMPROMISO,
             "pago": None,
             "situacion": None,
@@ -70,6 +74,7 @@ CREDITOS = {
             "fecha_contacto": None,
             "fecha_compromiso": None,
             "fecha_pago": None,
+            "canal_contacto": CanalContacto.TELEFONO,
             "estado": EstadoCRM.SIN_COMPROMISO,
             "pago": None,
             "situacion": None,
@@ -83,6 +88,7 @@ CREDITOS = {
             "fecha_contacto": date(2026, 7, 14),
             "fecha_compromiso": None,
             "fecha_pago": None,
+            "canal_contacto": CanalContacto.TELEFONO,
             "estado": EstadoCRM.SIN_COMPROMISO,
             "pago": None,
             "situacion": None,
@@ -96,6 +102,7 @@ CREDITOS = {
             "fecha_contacto": None,
             "fecha_compromiso": None,
             "fecha_pago": None,
+            "canal_contacto": CanalContacto.TELEFONO,
             "estado": EstadoCRM.SIN_COMPROMISO,
             "pago": None,
             "situacion": None,

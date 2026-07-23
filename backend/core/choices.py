@@ -13,6 +13,11 @@ class Situacion(models.TextChoices):
     PENDIENTE = "pendiente", "Pendiente",
     VALIDADO = "validado", "Validado"
 
+class CanalContacto(models.TextChoices):
+    TELEFONO = "telefono", "Teléfono"
+    WHATSAPP = "whatsapp", "WhatsApp"
+    PRESENCIAL = "presencial", "Presencial"
+
 class CuotaEstado(models.TextChoices):
     VENCIDA = "vencida", "Vencida",
     VIGENTE = "vigente", "Vigente"

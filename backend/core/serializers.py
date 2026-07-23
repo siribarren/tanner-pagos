@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field
 
-from .choices import EstadoCRM, Situacion, TipoPago
+from .choices import CanalContacto, EstadoCRM, Situacion, TipoPago
 from .models import CRMFila, Credito, Cuota
 
 
@@ -13,6 +13,7 @@ class CRMFilaSerializer(serializers.ModelSerializer):
             "fecha_contacto",
             "fecha_compromiso",
             "fecha_pago",
+            "canal_contacto",
             "estado",
             "pago",
             "situacion",
@@ -42,6 +43,7 @@ class CarteraListSerializer(serializers.ModelSerializer):
     fecha_contacto = serializers.SerializerMethodField()
     fecha_compromiso = serializers.SerializerMethodField()
     fecha_pago = serializers.SerializerMethodField()
+    canal_contacto = serializers.SerializerMethodField()
     estado = serializers.SerializerMethodField()
     pago = serializers.SerializerMethodField()
     situacion = serializers.SerializerMethodField()
@@ -57,6 +59,7 @@ class CarteraListSerializer(serializers.ModelSerializer):
             "fecha_contacto",
             "fecha_compromiso",
             "fecha_pago",
+            "canal_contacto",
             "estado",
             "pago",
             "situacion",
@@ -83,6 +86,10 @@ class CarteraListSerializer(serializers.ModelSerializer):
     @extend_schema_field(serializers.DateField(allow_null=True))
     def get_fecha_pago(self, obj):
         return self._value(obj, "fecha_pago")
+
+    @extend_schema_field(serializers.ChoiceField(choices=CanalContacto.choices, allow_null=True))
+    def get_canal_contacto(self, obj):
+        return self._value(obj, "canal_contacto")
 
     @extend_schema_field(serializers.ChoiceField(choices=EstadoCRM.choices, allow_null=True))
     def get_estado(self, obj):
