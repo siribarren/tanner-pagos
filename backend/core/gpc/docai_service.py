@@ -20,8 +20,8 @@ class DocumentAIService:
     def __init__(self):
         self.cfg: DocAiConfig = get_docai_config()
 
-        credentials_path = environ.get("DOCAI_CREDENTIALS_PATH")
-        assert credentials_path is not None, "DOCAI_CREDENTIALS_PATH no esta configurada."
+        credentials_path = environ.get("GCP_CREDENTIALS_PATH")
+        assert credentials_path is not None, "GCP_CREDENTIALS_PATH no esta configurada."
 
         client_options = ClientOptions(api_endpoint=f"{self.cfg.location}-documentai.googleapis.com")
         self._client = self.get_document_ai_client(credentials_path, client_options)
