@@ -1,5 +1,6 @@
 from django.db import models
 from .choices import EstadoCRM, TipoPago, Situacion, CuotaEstado
+from .managers import RequestCacheManager
 # Create your models here.
 
 #CREDITO
@@ -44,3 +45,27 @@ class Cuota(models.Model):
 
     class Meta:
         db_table = 'cuota'
+
+
+#REQUESTCACHE
+class RequestCache(models.Model):
+    id = models.AutoField(primary_key=True)
+    model = models.CharField(max_length=50)
+    fecha = models.DateField()
+    request_text = models.CharField(default="")
+    request_hash = models.CharField(max_length=64)
+    response_text = models.CharField()
+    tokens_input = models.IntegerField(default=0)
+    tokens_thoughts = models.IntegerField(default=0)
+    tokens_output = models.IntegerField(default=0)
+    tokens_total = models.IntegerField(default=0)
+
+    objects = RequestCacheManager()
+
+    class Meta:
+        db_table = 'request_cache'
+        constraints = [
+            models.UniqueConstraint(fields=['model', 'request_hash'], name='uq_request_cache_model_hash'),
+        ]
+
+#PAGO / SE OBTENDRA DESDE EL LLM
