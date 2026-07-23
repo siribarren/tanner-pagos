@@ -36,11 +36,11 @@ class OpenAiUtils:
 
     @staticmethod
     def obtener_request_hash(model_name: str, request_hash: str) -> RequestCache | None:
-        return RequestCache.objects.buscar(model_name, request_hash)
+        return RequestCache.objects.obtener_request_cache(model_name, request_hash)
 
     @staticmethod
     def guardar_request_hash(model_name: str, req_text: str, req_hash: str, res_text: str, token_info: TokenInfo | None) -> None:
-        RequestCache.objects.guardar(
+        RequestCache.objects.guardar_request_cache(
             model=model_name,
             request_text=req_text,
             request_hash=req_hash,

@@ -57,7 +57,14 @@ class OpenAiPagoService:
             - Si no se encuentra la información requerida, la tabla debe quedar vacia.
 
         Por favor, organiza esta información en una estructura con las siguientes columnas 
+        ```text
         """
+        contenido: list[str] = []
+        for linea in texto.splitlines():
+            if linea.strip():
+                linea_full = linea.strip().replace("  ", " ")
+                contenido.append(linea_full)
+        return cabecera + "\n".join(contenido) + "\n```"
 
     def obtener_respuesta(self, user_prompt_str: str) -> tuple[Response, PagoResponse]:
         content_txt = ResponseInputTextContentParam(type="input_text", text=user_prompt_str)

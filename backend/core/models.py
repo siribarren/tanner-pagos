@@ -68,4 +68,4 @@ class RequestCache(models.Model):
             models.UniqueConstraint(fields=['model', 'request_hash'], name='uq_request_cache_model_hash'),
         ]
 
-#PAGO / SE OBTENDRA DESDE EL LLM
+#PAGO / SE OBTENDRA DESDE EL LLM / VARIOS CAMPOS DEBERAN SER NULLABLES

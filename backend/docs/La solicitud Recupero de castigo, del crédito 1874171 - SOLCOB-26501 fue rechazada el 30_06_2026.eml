@@ -1,0 +1,206 @@
+Received: from MW5PR18MB5199.namprd18.prod.outlook.com (2603:10b6:303:1ca::16)
+ by SA5PR18MB927602.namprd18.prod.outlook.com with HTTPS; Wed, 1 Jul 2026
+ 03:48:52 +0000
+Received: from DS3P221CA0007.NAMP221.PROD.OUTLOOK.COM (2603:10b6:8:45e::10) by
+ MW5PR18MB5199.namprd18.prod.outlook.com (2603:10b6:303:1ca::16) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.181.8; Wed, 1 Jul 2026
+ 03:48:48 +0000
+Received: from DM2PEPF00003FC8.namprd04.prod.outlook.com
+ (2603:10b6:8:45e:cafe::21) by DS3P221CA0007.outlook.office365.com
+ (2603:10b6:8:45e::10) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.181.8 via Frontend Transport; Wed, 1
+ Jul 2026 03:48:48 +0000
+Received: from a8-98.smtp-out.amazonses.com (54.240.8.98) by
+ DM2PEPF00003FC8.mail.protection.outlook.com (10.167.23.26) with Microsoft
+ SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.21.181.6
+ via Frontend Transport; Wed, 1 Jul 2026 03:48:48 +0000
+From: Tanner <app@flokzu.com>
+To: Recaudacion Automotriz <recaudacionautomotriz@tanner.cl>
+Subject: =?iso-8859-1?Q?La_solicitud_Recupero_de_castigo,_del_cr=E9dito_1874171_-_?=
+ =?iso-8859-1?Q?SOLCOB-26501_fue_rechazada_el_30/06/2026?=
+Thread-Topic: =?iso-8859-1?Q?La_solicitud_Recupero_de_castigo,_del_cr=E9dito_1874171_-_?=
+ =?iso-8859-1?Q?SOLCOB-26501_fue_rechazada_el_30/06/2026?=
+Thread-Index: AQHdCQyI1dhPmpTJK0CaTnXVia50Mg==
+Date: Wed, 1 Jul 2026 03:48:47 +0000
+Message-ID: <0100019f1bcb2baf-b2a17d7d-1e6b-4e0e-8368-eb3d51edb706-000000@email.amazonses.com>
+Reply-To: soporte Flow <soporteflow@tanner.cl>
+Content-Language: es-ES
+X-MS-Exchange-Organization-AuthSource: DM2PEPF00003FC8.namprd04.prod.outlook.com
+X-MS-Has-Attach:
+X-Auto-Response-Suppress: DR, OOF, AutoReply
+X-MS-Exchange-Organization-Network-Message-Id: f92c77a7-e719-4042-904c-08ded723a88b
+X-MS-TNEF-Correlator:
+X-MS-Exchange-Organization-RecordReviewCfmType: 0
+x-ms-exchange-organization-originalclientipaddress: 54.240.8.98
+x-ms-exchange-organization-originalserveripaddress: 10.167.23.26
+received-spf: Pass (protection.outlook.com: domain of ses.flokzu.com
+ designates 54.240.8.98 as permitted sender) receiver=protection.outlook.com;
+ client-ip=54.240.8.98; helo=a8-98.smtp-out.amazonses.com; pr=C
+x-ms-publictraffictype: Email
+authentication-results: spf=pass (sender IP is 54.240.8.98)
+ smtp.mailfrom=ses.flokzu.com; dkim=pass (signature was verified)
+ header.d=flokzu.com;dkim=pass (signature was verified)
+ header.d=amazonses.com;dmarc=pass action=none
+ header.from=flokzu.com;compauth=pass reason=100
+x-ms-office365-filtering-correlation-id: f92c77a7-e719-4042-904c-08ded723a88b
+x-ms-traffictypediagnostic: DM2PEPF00003FC8:EE_|MW5PR18MB5199:EE_|SA5PR18MB927602:EE_
+x-ms-exchange-atpmessageproperties: SA|SL
+x-forefront-antispam-report: CIP:54.240.8.98;CTRY:US;LANG:es;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:a8-98.smtp-out.amazonses.com;PTR:a8-98.smtp-out.amazonses.com;CAT:NONE;SFS:(13230040)(12012899012)(32142699015)(2092899012)(3072899012)(5062899012)(16102099003)(18003699003)(11063799006)(5063699009)(19002099009)(8096899003)(57112099003)(4113699003)(55112099003);DIR:INB;
+x-microsoft-antispam: BCL:2;ARA:13230040|12012899012|32142699015|2092899012|3072899012|5062899012|16102099003|18003699003|11063799006|5063699009|19002099009|8096899003|57112099003|4113699003|55112099003;
+x-ms-exchange-crosstenant-originalarrivaltime: 01 Jul 2026 03:48:48.3203 (UTC)
+x-ms-exchange-crosstenant-fromentityheader: Internet
+x-ms-exchange-crosstenant-id: d6fd039e-e573-49f4-87d2-7212d7eff9fa
+x-ms-exchange-crosstenant-network-message-id: f92c77a7-e719-4042-904c-08ded723a88b
+x-ms-exchange-transport-crosstenantheadersstamped: MW5PR18MB5199
+x-ms-exchange-transport-endtoendlatency: 00:00:04.0277815
+x-ms-exchange-processed-by-bccfoldering: 15.21.0159.007
+x-eopattributedmessage: 0
+x-eoptenantattributedmessage: d6fd039e-e573-49f4-87d2-7212d7eff9fa:0
+dkim-signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1782877727;
+	h=From:Reply-To:To:Message-ID:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:Date:Feedback-ID;
+	bh=UBgnPMdB2WQovySgkF4p4AfoDNurGEkh/2vf8+e7cLc=;
+	b=QiU79Di5kGFgClgdVZfAXnI1k9l/kMwJv9TmlWLlIIME2esxAESUTEe1ppOaCDXd
+	DSEnxXNF/HGzzbZmEWbc1tlTI7w0bD8od1xaR0can1YVeHBHRkdLSw63ggTi6LhlSa4
+	Er4ytdzfbUegaVV8pAQ+bt1jyvjCeBOHLHBzJI2M=
+x-ms-exchange-crosstenant-authsource: DM2PEPF00003FC8.namprd04.prod.outlook.com
+x-ms-exchange-crosstenant-authas: Anonymous
+X-Microsoft-Antispam-Mailbox-Delivery: ucf:0;jmr:0;auth:0;dest:I;ENG:(910005)(944490095)(944506478)(944626604)(920097)(930201)(20251009189)(140003)(1420198);
+X-Microsoft-Antispam-Message-Info: =?iso-8859-1?Q?5G1ZJ8Dpr9H0d9Tgs/Jv8icOK8bE0Ugxc7XcJEk/NvfEMemntqtnucWJrd?=
+ =?iso-8859-1?Q?dLNiaw86MOVnI+syzJDQh9Kr7ZFTrguPGIzgGlU8eciIIoLTGKXTbEDjWp?=
+ =?iso-8859-1?Q?Cg8SgCxk7Pjd+WlqwY3JmtVNdMiBfVk/eZfAvKFYsUYBpcDjr6BVHNGUlu?=
+ =?iso-8859-1?Q?3c7fSEzllomkhI+gC9dAg0b60kikLZHOd7d/DvFty3Oy6txwWhL/3Ma3+d?=
+ =?iso-8859-1?Q?6ju2fgCtBW3P5psE+junH2rTIpk0y+BwrZm+Ma8g6GfxDdtOtyM0KRkYv1?=
+ =?iso-8859-1?Q?q5QQMAGkwN/droO6lv82sa418ytDb+xv/HVtF5Y+rcUD/TUTp0IRZvNBcF?=
+ =?iso-8859-1?Q?DsKGGHKf7BF6nfENTDHvxlEWlg/bkzKLXqYl5arm1Rq6ppJCvgO13jPR08?=
+ =?iso-8859-1?Q?MzA3OBpARGvZcN6I/p2HzKGUbhjQ9+MtDZGBrIN7A85004Ak1326sVtdjo?=
+ =?iso-8859-1?Q?WEYcSQdohIWa6kLf2K0sLOqtr+f+T7n3PDxTLNwF1wsCE7vk7Ihlg37mGc?=
+ =?iso-8859-1?Q?cc8W5+9khyEzevwWR0tsWYMb0yRQeWfvhUdiS4XWzlB8x0deBg4Uz3+AWU?=
+ =?iso-8859-1?Q?7IfgQMEJ7PGp9fS3MMVJnwqxuaozlAXm+8QEiaszkrRhOzzoFGIea3RYup?=
+ =?iso-8859-1?Q?/pt5z58XOGET6FQdmZnKkDZzA8VpSd1CtQijaiQDsP/y/m1qeFTq9Y7OFt?=
+ =?iso-8859-1?Q?n3ps44cfC4X2xIXbdfGF9kyGedborfoTDsegcCIni73Jbq26Sd68+8HQXh?=
+ =?iso-8859-1?Q?e6VZQrSBgqGM8fldBoth+U9x1KlA0uQusF4mLft/GZRKfnXrtj1bycZffQ?=
+ =?iso-8859-1?Q?5YfZaf7NNw20D73U9/lKGmCYWxVP50x1AkZ7TSNC0gjzWbuPbmA+PFrs71?=
+ =?iso-8859-1?Q?YV3WJvtQimzzDNqS2uSSZvZ0JokbruY9HAA2Y2R1v7ObiUjRru05RvG4tt?=
+ =?iso-8859-1?Q?A2XkzXnF6GjnSZ2/1TpygorJ5H5EFzhzdWyH/aQwSDUjQpWygRBOzRyR3x?=
+ =?iso-8859-1?Q?PaF/gynTVp2Gw3pDybAsnueKEgwCpwyByboNap0DqbS4RoX84Q3gGiurTw?=
+ =?iso-8859-1?Q?Od3kjc9zxlerxMGVihA38qZuaECCuBeMVUeCR5zKhtOG/sSARSO4AE1vzs?=
+ =?iso-8859-1?Q?veUIqolqkqYJ6dLjd+0vQzsmefeisEuym8jH0RTofglvEI/I5PMAkKGJeo?=
+ =?iso-8859-1?Q?f1h77va/9l0a517jv7pBdYetnPP7Ts5tq4yCBPQ6CF034y5CyaVu878GxE?=
+ =?iso-8859-1?Q?mBZ03M3GbkZaKRUSNq4UxgkLpfEyjG+Q29Jqnf/xgnJoVzZaNniI4TQxpz?=
+ =?iso-8859-1?Q?Dnuo1Z/jRHuIc8b1dDudqkmTO8sLN/5xN62fAlHJRXGLs+8HDRY+5kTydw?=
+ =?iso-8859-1?Q?1leq+/dGX5U8mdoovdIRwE4Gobs6d704WoDTIDPNcStriWm/ZJElw0naOI?=
+ =?iso-8859-1?Q?xHJe2u6ormirczPNAaFlB4+u1biaLQoDOWrPByr8G2cPxElIcsGhQRewgq?=
+ =?iso-8859-1?Q?lzAiFRrBh3cdE5ntoisKy/JefnThBqfGHtZbBFUVxJmJ9EVf3rotG/R9ZS?=
+ =?iso-8859-1?Q?/kddgZp0TeHCD+P02Rwvqcd0KsEZV/Vvnyg1Ih88ZgmJeVHAMPPz1xiFbR?=
+ =?iso-8859-1?Q?PE2ngPpxKH8+w0HmwoVLUJeTyvulmdJk5vG77YGL2b2waiYKzg7fhrMZgj?=
+ =?iso-8859-1?Q?eiL0mXCDeAzjdmcNdQaWABQUXlGD4ZbiDggpjk+fzvzF1x9/GApDtuc+PU?=
+ =?iso-8859-1?Q?6AhpWFcM+hbDn7E2d3QpO4qS9IyGwBhuTtab4V2ZMIYNbShPwRmwU9ucWg?=
+ =?iso-8859-1?Q?ol9eT/foUFEEDh1MN7CMQy+tFb/wu4C2cO0ioruLK6mdxA/9LbhQ1yMtbD?=
+ =?iso-8859-1?Q?N5/ZG+Ha3FnljA/nGXacTgRBKeEx04x8NfGedNayGhUT9xEHS9QIniCcah?=
+ =?iso-8859-1?Q?4io9XxWhmgQc65qX7lZb6r1sMhl3n2i5QOK/3fcdOum1mWiSYpw1FnnY3o?=
+ =?iso-8859-1?Q?bD0K3YfRh9rQrFvIor3OpeTFHY9C3Hc+gcSDGmXYaUIh271UWTFIUWy98j?=
+ =?iso-8859-1?Q?XDOzVlTgIoA14rQkcx2kj8WF//VTzGyWRLbP6wbD66X8LBb93/0OSQbC4N?=
+ =?iso-8859-1?Q?0pT/e4ogzFXOU0QEkYu3TB3PPApS2HrVPrpb3pQrX9tv+yygO54Jbo/zKD?=
+ =?iso-8859-1?Q?nMYTkF3g8Zg0eDu0rhUWLH+YK4sv6b51NSfisJTY+DAl8euEx2pJk2lvj8?=
+ =?iso-8859-1?Q?NLVAyOsYNiXjPn+7JblNB9yl1Nl087PA2hkPUg4yXDTbt9OWWQVrQID0Ii?=
+ =?iso-8859-1?Q?WYFD4oLszkvjtScruMfpZovzGrDu6oEk0Ky25zK/rh8b5o1Q0v2z7dNU0o?=
+ =?iso-8859-1?Q?OpSme+fJplCXs2DC9HUY+aOTJvuB1ylsDIZC5nKPoX0eWk8o2iqSBfSM/8?=
+ =?iso-8859-1?Q?BXnt4VZKn5OSbh/QK9n84KaZFnCRJRm5NqKJKFbWkjT/7571WLTbUoA3qU?=
+ =?iso-8859-1?Q?CLQT8DsrRYmyFWzAdsvu1Z8mjTBMfLE10A2x5TO2CwnrPCYIyN8+irs0RO?=
+ =?iso-8859-1?Q?4TClAO/nOVnfZVntgTgtOL+YrcS58pXBx49kyzw=3D?=
+Content-Type: multipart/alternative;
+	boundary="_000_0100019f1bcb2bafb2a17d7d1e6b4e0e8368eb3d51edb706000000e_"
+MIME-Version: 1.0
+
+--_000_0100019f1bcb2bafb2a17d7d1e6b4e0e8368eb3d51edb706000000e_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+Estimados,
+
+La solicitud SOLCOB-26501 Recupero de castigo, con id cr=E9dito 1874171 se =
+ha rechazado el 30/06/2026 por Saldo utilizado .
+
+Favor hacer las gestiones correspondientes y volver a mandar la solicitud.
+
+Saludos
+
+--
+Este correo ha sido enviado por Tanner.
+
+Este es un correo electr=F3nico automatizado.
+
+
+
+  _____
+
+Est=E1 recibiendo este correo porque se registr=F3 en Tanner o alguien en s=
+u empresa quiso envi=E1rselo.
+Puede desuscribirse<https://nam02.safelinks.protection.outlook.com/?url=3Dh=
+ttps%3A%2F%2Fapp.flokzu.com%2Ftanner%2Funsubscribe%2Fconfirm%3Flang%3Des%26=
+u%3Dd7f5e2853b2ab5475784d8bf291fe56025b0d391acfb0439ca29d5bb2942942ca3123c4=
+8b54a31cc&data=3D05%7C02%7Cleslie.gallardo%40tanner.cl%7Cf92c77a7e719404290=
+4c08ded723a88b%7Cd6fd039ee57349f487d27212d7eff9fa%7C0%7C0%7C639184745325303=
+472%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlA=
+iOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=3Du22y9EOj=
+0u0sWC75e8A4s1spcTx1zsl9HvP3%2FHNzZcQ%3D&reserved=3D0> de esta lista en cua=
+lquier momento
+
+
+--_000_0100019f1bcb2bafb2a17d7d1e6b4e0e8368eb3d51edb706000000e_
+Content-Type: text/html; charset="iso-8859-1"
+Content-ID: <841B5C3C32DC534990102CA0024E1A85@namprd18.prod.outlook.com>
+Content-Transfer-Encoding: quoted-printable
+
+<!doctype html><html lang=3D"{{lang}}"><head>
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Diso-8859-=
+1">
+<meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=3D1"=
+>
+<title>Mail delegado</title>
+</head>
+<body>
+<span>Estimados,<br>
+<br>
+La solicitud SOLCOB-26501 Recupero de castigo, con id cr=E9dito 1874171 se =
+ha rechazado el 30/06/2026 por Saldo utilizado .<br>
+<br>
+Favor hacer las gestiones correspondientes y volver a mandar la solicitud.<=
+br>
+<br>
+Saludos</span> <br>
+<br>
+-- <br>
+<span><span>Este correo ha sido enviado por</span> Tanner<span></span>.</sp=
+an> <br>
+<br>
+<span>Este es un correo electr=F3nico automatizado.</span>
+<div>
+<div id=3D"unsubscribe-section" style=3D"color:#6f6f6f!important;font-size:=
+11px;font-weight:200;margin-top:30px;text-align:center;" align=3D"center" c=
+lass=3D"unsuscribe-section">
+<p>&nbsp;</p>
+<hr style=3D"border-style: dashed;border-width: 1px;">
+<p>Est=E1 recibiendo este correo porque se registr=F3 en Tanner o alguien e=
+n su empresa quiso envi=E1rselo.<br>
+Puede <a href=3D"https://nam02.safelinks.protection.outlook.com/?url=3Dhttp=
+s%3A%2F%2Fapp.flokzu.com%2Ftanner%2Funsubscribe%2Fconfirm%3Flang%3Des%26u%3=
+Dd7f5e2853b2ab5475784d8bf291fe56025b0d391acfb0439ca29d5bb2942942ca3123c48b5=
+4a31cc&amp;data=3D05%7C02%7Cleslie.gallardo%40tanner.cl%7Cf92c77a7e71940429=
+04c08ded723a88b%7Cd6fd039ee57349f487d27212d7eff9fa%7C0%7C0%7C63918474532530=
+3472%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIl=
+AiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&amp;sdata=3Du22=
+y9EOj0u0sWC75e8A4s1spcTx1zsl9HvP3%2FHNzZcQ%3D&amp;reserved=3D0" originalsrc=
+=3D"https://app.flokzu.com/tanner/unsubscribe/confirm?lang=3Des&amp;u=3Dd7f=
+5e2853b2ab5475784d8bf291fe56025b0d391acfb0439ca29d5bb2942942ca3123c48b54a31=
+cc" target=3D"_blank" style=3D"color:#6f6f6f!important;text-decoration:unde=
+rline!important">
+desuscribirse</a> de esta lista en cualquier momento</p>
+</div>
+</div>
+</body>
+</html>
+
+--_000_0100019f1bcb2bafb2a17d7d1e6b4e0e8368eb3d51edb706000000e_--

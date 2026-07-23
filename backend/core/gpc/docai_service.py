@@ -11,7 +11,7 @@ from google.cloud import documentai
 from core.config.docai_config import DocAiConfig, get_docai_config
 from core.models import RequestCache
 
-MODEL_DOCAI = "DocumentAi"
+MODEL_DOCAI = "DocumentAI"
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class DocumentAIService:
 
     def procesar(self, content: bytes, mime_type: str = "application/pdf") -> str:
         request_hash = hashlib.sha256(content).hexdigest()
-        cache = RequestCache.objects.buscar(MODEL_DOCAI, request_hash)
+        cache = RequestCache.objects.obtener_request_cache(MODEL_DOCAI, request_hash)
         if cache is not None:
             logger.info("Texto obtenido desde RequestCache, se omite DocumentAI")
             return cache.response_text
@@ -51,7 +51,12 @@ class DocumentAIService:
             raise
 
         texto = result.document.text
-        RequestCache.objects.guardar(model=MODEL_DOCAI, request_text="", request_hash=request_hash, response_text=texto)
+        RequestCache.objects.guardar_request_cache(
+            model=MODEL_DOCAI,
+            request_text="",
+            request_hash=request_hash,
+            response_text=texto,
+        )
         return texto
 
     @staticmethod
