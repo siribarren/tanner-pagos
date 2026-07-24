@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class TokenInfo(BaseModel):
@@ -9,3 +9,7 @@ class TokenInfo(BaseModel):
 
 class PagoResponse(BaseModel):
     mmm: str #...
+
+class CantidadTransferenciasResponse(BaseModel):
+    cantidad: int
+    evidencia: str = Field(max_length=100)
