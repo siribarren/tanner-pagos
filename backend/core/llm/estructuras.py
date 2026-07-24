@@ -1,3 +1,5 @@
+from datetime import date
+
 from pydantic import BaseModel, Field
 
 
@@ -8,7 +10,10 @@ class TokenInfo(BaseModel):
     total_tokens: int
 
 class PagoResponse(BaseModel):
-    mmm: str #...
+    pago_total: int
+    fecha_pago: date
+    cuenta_destino: str | None
+    cuentas_distintas: bool
 
 class CantidadTransferenciasResponse(BaseModel):
     cantidad: int

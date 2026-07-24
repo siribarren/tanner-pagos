@@ -10,9 +10,6 @@ from core.llm.openai_utils import OpenAiUtils
 
 logger = logging.getLogger(__name__)
 
-MODEL_PAGO = "OpenAiPago"
-
-
 class OpenAiPagoService:
     def __init__(self):
         llm_config: LlmConfig = get_llm_config()
@@ -20,9 +17,9 @@ class OpenAiPagoService:
         self.model_name = llm_config.openai_model
         logger.info(f"OpenAiPagoService inicializado con modelo: {self.model_name}")
 
-    def obtener_pago(self, texto: str) -> PagoResponse:
+    def obtener_pago(self, texto: str, cantidad_transferencias: int) -> PagoResponse:
         try:
-            user_prompt_str = self.get_prompt(texto)
+            user_prompt_str = self.get_prompt(texto, cantidad_transferencias)
             request_text = f"Prompt: {user_prompt_str}"
             request_hash = OpenAiUtils.hash_contenido_1(user_prompt_str)
             cached_response = OpenAiUtils.obtener_request_hash(self.model_name, request_hash)
@@ -48,15 +45,42 @@ class OpenAiPagoService:
             return PagoResponse()
 
     @staticmethod
-    def get_prompt(texto: str) -> str:
-        cabecera = """
-        A continuacion se presentará el texto de un documento relacionado a una transferencia bancaria
+    def get_prompt(texto: str, cantidad_transferencias: int) -> str:
+        cabecera = f"""
+        A continuacion se te presentará el texto OCR (ruidoso, con lineas sueltas y posibles
+        errores) de {cantidad_transferencias} comprobante(s) de transferencia bancaria.
 
-        Este es el contexto:
-            - Este document deberia contener información de un pago
-            - Si no se encuentra la información requerida, la tabla debe quedar vacia.
+        Contexto:
+            - Cada comprobante suele repetir las mismas etiquetas: "Monto transferido", "Destinatario",
+              "Institución financiera", "Tipo de cuenta", "Número de cuenta" (o "Nº de cuenta"),
+              "Fecha y hora" (o "Fecha" / "Hora" en lineas separadas).
+            - El monto aparece como texto tipo "$250.000".
+            - La fecha de la transferencia aparece cerca de "Fecha y hora"/"Fecha", en formatos como
+              "15 jun. 2026 12:31 hrs" o "15/06/2026". NO la confundas con el "Nº de operación",
+              el "RUT"/"C.I.", el "TELEFONO", ni con números de cuenta.
+            - Para determinar la cuenta destino de CADA comprobante, sigue este procedimiento estricto:
+              1. Busca en el texto la etiqueta literal "Número de cuenta" o "Nº de cuenta".
+              2. La cuenta destino de ese comprobante es SOLO el numero que aparece justo despues de
+                 esa etiqueta (misma linea o linea siguiente), asociado al Destinatario (no al Origen).
+              3. Cualquier otro numero que aparezca en el comprobante SIN estar precedido por esa
+                 etiqueta literal (por ejemplo, pegado al nombre del destinatario, un RUT, telefono,
+                 "Nº de operación", C.I., etc.) NO es una cuenta destino: ignoralo por completo, no lo
+                 compares ni lo reportes.
+              4. Si un comprobante no tiene la etiqueta "Número de cuenta"/"Nº de cuenta" en el texto,
+                 ese comprobante no aporta informacion de cuenta destino (no cuenta como "distinta").
+            - cuentas_distintas = true SOLO si, entre los comprobantes donde sí identificaste la cuenta
+              destino con el procedimiento anterior, hay 2 o mas numeros de cuenta diferentes entre si.
+              Si todos los que tienen cuenta identificada comparten el mismo numero, cuentas_distintas
+              es false y cuenta_destino es ese numero.
 
-        Por favor, organiza esta información en una estructura con las siguientes columnas 
+        Por favor, organiza esta información en una estructura con las siguientes columnas:
+            - pago_total: La suma en pesos de todos los "Monto transferido" encontrados
+            - fecha_pago: La fecha (formato YYYY-MM-DD) mas reciente entre las fechas de transferencia
+              encontradas (ej: si hay transferencias en enero, abril y diciembre del mismo año, usar la de diciembre)
+            - cuenta_destino: Si cuentas_distintas es false, este campo DEBE ser ese numero de cuenta
+              compartido (nunca null en ese caso). Si cuentas_distintas es true, este campo debe ser null
+            - cuentas_distintas: true si los comprobantes tienen distintos numeros de cuenta destino
+              entre si (esto no deberia ocurrir), false si todos comparten la misma cuenta destino
         ```text
         """
         contenido: list[str] = []

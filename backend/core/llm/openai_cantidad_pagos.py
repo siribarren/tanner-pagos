@@ -1,13 +1,5 @@
 import logging
-import os
 import time
-from pathlib import Path
-
-if __name__ == "__main__":
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
-    import django
-
-    django.setup()
 
 from openai import OpenAI
 from openai.types.responses import EasyInputMessageParam, Response, ResponseInputTextContentParam
@@ -81,26 +73,3 @@ class OpenAiCantidadPagosService:
 
     def guardar_cantidad_pagos_hash(self, request_text: str, request_hash: str, response_text: str, token_info: TokenInfo | None) -> None:
         OpenAiUtils.guardar_request_hash(self.model_name, request_text, request_hash, response_text, token_info)
-
-
-def main():
-    from core.gpc.docai_service import DocumentAIService
-
-    base_dir = Path(__file__).resolve().parents[2]
-    pdf_path = base_dir / "docs" / "2374982 - MARCIA CARTES.pdf"
-    downloads_dir = base_dir / "downloads"
-    downloads_dir.mkdir(exist_ok=True)
-    txt_path = downloads_dir / f"{pdf_path.stem}.txt"
-
-    docai_service = DocumentAIService()
-    texto = docai_service.procesar(pdf_path.read_bytes())
-    txt_path.write_text(texto, encoding="utf-8")
-    logger.info(f"Texto guardado en {txt_path}")
-
-    cantidad_service = OpenAiCantidadPagosService()
-    resultado = cantidad_service.obtener_cantidad_pagos(texto)
-    print(resultado.model_dump_json(indent=2))
-
-
-if __name__ == "__main__":
-    main()
