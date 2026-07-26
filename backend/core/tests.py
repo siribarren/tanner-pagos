@@ -17,7 +17,7 @@ from rest_framework.test import APIClient
 
 from .choices import CanalContacto, CuotaEstado, EstadoCRM, Situacion, TipoPago
 from .gpc.docai_service import DocumentAIService
-from .pdf_service import generar_pdf_desde_comprobantes
+from .pdf_service import PdfService
 from .llm.estructuras import CantidadTransferenciasResponse, PagoResponse, TransferenciaResponse
 from .models import CRMFila, Credito, Cuota, Pago, PagoCuota, PagoTransferencia
 
@@ -275,7 +275,7 @@ class DocumentAITextoTests(TestCase):
             ("Cuenta Corriente 8013244705", 0.50, 0.85, 0.38),
         ])
 
-        filas = DocumentAIService.texto_por_filas(document).splitlines()
+        filas = DocumentAIService().texto_por_filas(document).splitlines()
 
         self.assertEqual(filas, [
             "[pagina 1]",
@@ -301,7 +301,7 @@ class DocumentAITextoTests(TestCase):
             ("222", 0.78, 0.95, 0.40),
         ])
 
-        filas = DocumentAIService.texto_por_filas(document).splitlines()
+        filas = DocumentAIService().texto_por_filas(document).splitlines()
 
         self.assertEqual(filas, [
             "[pagina 1]",
@@ -316,7 +316,7 @@ class DocumentAITextoTests(TestCase):
     def test_sin_geometria_cae_al_texto_plano(self):
         document = documentai.Document(text="texto sin lineas", pages=[documentai.Document.Page()])
 
-        self.assertEqual(DocumentAIService.texto_por_filas(document), "texto sin lineas")
+        self.assertEqual(DocumentAIService().texto_por_filas(document), "texto sin lineas")
 
 
 def imagen_subida(nombre: str, formato: str = "PNG") -> SimpleUploadedFile:
@@ -383,7 +383,9 @@ class PagoTests(TestCase):
         )
 
     def test_pdf_tiene_una_pagina_por_imagen(self):
-        pdf_path = generar_pdf_desde_comprobantes([imagen_subida("t1.png"), imagen_subida("t2.png")], self.credito.id)
+        pdf_path = PdfService().generar_pdf_desde_comprobantes(
+            [imagen_subida("t1.png"), imagen_subida("t2.png")], self.credito.id,
+        )
 
         self.assertTrue(pdf_path.read_bytes().startswith(b"%PDF"))
         self.assertEqual(len(PdfReader(pdf_path).pages), 2)
@@ -393,12 +395,12 @@ class PagoTests(TestCase):
         esperado = original.read()
         original.seek(0)
 
-        pdf_path = generar_pdf_desde_comprobantes([original], self.credito.id)
+        pdf_path = PdfService().generar_pdf_desde_comprobantes([original], self.credito.id)
 
         self.assertEqual(pdf_path.read_bytes(), esperado)
 
     def test_pdf_conserva_las_paginas_de_un_comprobante_ya_en_pdf(self):
-        pdf_path = generar_pdf_desde_comprobantes(
+        pdf_path = PdfService().generar_pdf_desde_comprobantes(
             [imagen_subida("t1.png"), pdf_subido("comprobante.pdf", paginas=2)], self.credito.id,
         )
 

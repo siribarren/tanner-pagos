@@ -22,9 +22,9 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import MultiPartParser
 
 from .choices import CuotaEstado, EstadoCRM
-from .email_service import enviar_compromiso_creado
+from .email_service import EmailService
 from .models import CRMFila, Credito, Cuota
-from .pago_service import procesar_comprobantes
+from .pago_service import PagoService
 from .serializers import (
     CarteraDetailSerializer,
     CarteraListSerializer,
@@ -93,7 +93,7 @@ class CarteraViewSet(viewsets.ReadOnlyModelViewSet):
             cuota_ids=data["cuota_ids"],
             vencidas_ids=data["_vencidas_ids"],
         )
-        enviar_compromiso_creado(credito.correo_deudor, data["fecha_compromiso"], data["monto"])
+        EmailService().enviar_compromiso_creado(credito.correo_deudor, data["fecha_compromiso"], data["monto"])
         return Response(CRMFilaSerializer(fila).data)
 
     @extend_schema(tags=["Cartera"], request=PagoCargaSerializer, responses=PagoSerializer)
@@ -108,7 +108,7 @@ class CarteraViewSet(viewsets.ReadOnlyModelViewSet):
             raise ValidationError({"credito": "El credito no tiene un compromiso de pago vigente."})
 
         try:
-            pago = procesar_comprobantes(fila, credito.id, serializer.validated_data["imagenes"])
+            pago = PagoService().procesar_comprobantes(fila, credito.id, serializer.validated_data["imagenes"])
         except ValueError as e:
             raise ValidationError({"imagenes": str(e)})
 
