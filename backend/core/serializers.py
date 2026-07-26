@@ -1,10 +1,12 @@
 from datetime import date
+from pathlib import Path
 
 from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field
 
 from .choices import CanalContacto, CuotaEstado, EstadoCRM, Situacion, TipoPago
-from .models import CRMFila, Credito, Cuota
+from .models import CRMFila, Credito, Cuota, Pago, PagoCuota, PagoTransferencia
+from .pdf_service import EXTENSIONES_COMPROBANTE
 
 
 class CRMFilaSerializer(serializers.ModelSerializer):
@@ -176,3 +178,51 @@ class CarteraDetailSerializer(serializers.ModelSerializer):
     def get_cuotas(self, obj):
         cuotas = getattr(obj, "_cuotas", ())
         return CuotaSerializer(cuotas, many=True).data
+
+
+class PagoCargaSerializer(serializers.Serializer):
+    # El limite de 15 es el maximo de paginas que procesa DocumentAI en modo sincrono.
+    imagenes = serializers.ListField(child=serializers.FileField(), allow_empty=False, max_length=15)
+
+    def validate_imagenes(self, value):
+        for archivo in value:
+            if Path(archivo.name).suffix.lower() not in EXTENSIONES_COMPROBANTE:
+                raise serializers.ValidationError(f"{archivo.name}: solo se aceptan archivos PNG, JPG, JPEG o PDF.")
+        return value
+
+
+class PagoTransferenciaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PagoTransferencia
+        fields = ("id", "orden", "monto", "fecha", "cuenta_destino", "banco", "n_operacion")
+
+
+class PagoCuotaSerializer(serializers.ModelSerializer):
+    cuota_fecha = serializers.DateField(source="cuota_id.fecha", read_only=True)
+    cuota_monto = serializers.IntegerField(source="cuota_id.monto", read_only=True)
+
+    class Meta:
+        model = PagoCuota
+        fields = ("cuota_id", "cuota_fecha", "cuota_monto", "monto_imputado")
+
+
+class PagoSerializer(serializers.ModelSerializer):
+    transferencias = PagoTransferenciaSerializer(many=True, read_only=True)
+    imputaciones = PagoCuotaSerializer(many=True, read_only=True)
+    monto_comprometido = serializers.IntegerField(source="crm_fila_id.monto", read_only=True)
+
+    class Meta:
+        model = Pago
+        fields = (
+            "id",
+            "pdf_path",
+            "monto_total",
+            "monto_comprometido",
+            "fecha_pago",
+            "cuenta_destino",
+            "cuentas_distintas",
+            "cantidad_transferencias",
+            "creado_en",
+            "transferencias",
+            "imputaciones",
+        )

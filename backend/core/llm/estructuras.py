@@ -9,11 +9,20 @@ class TokenInfo(BaseModel):
     output_token: int
     total_tokens: int
 
+class TransferenciaResponse(BaseModel):
+    orden: int
+    monto: int
+    fecha: date | None
+    cuenta_destino: str | None
+    banco: str | None
+    n_operacion: str | None
+
 class PagoResponse(BaseModel):
     pago_total: int
     fecha_pago: date
     cuenta_destino: str | None
     cuentas_distintas: bool
+    transferencias: list[TransferenciaResponse]
 
 class CantidadTransferenciasResponse(BaseModel):
     cantidad: int

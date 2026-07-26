@@ -1,6 +1,7 @@
 import hashlib
 import json
 import logging
+from dataclasses import dataclass
 from os import environ
 from pathlib import Path
 
@@ -11,9 +12,32 @@ from google.cloud import documentai
 from core.config.docai_config import DocAiConfig, get_docai_config
 from core.models import RequestCache
 
+# El sufijo -layout invalida el cache de la version que guardaba document.text plano.
 MODEL_DOCAI = "DocumentAI"
 
+# Dos lineas van en la misma fila si sus alturas se solapan al menos este porcentaje.
+SOLAPE_MINIMO_FILA = 0.4
+
+# Deteccion de sub-imagenes pegadas lado a lado: el ancho de la pagina se divide en BINS_X
+# franjas y una canaleta vacia de al menos ANCHO_MINIMO_CANALETA separa dos documentos.
+BINS_X = 200
+ANCHO_MINIMO_CANALETA = 0.01
+
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class LineaOcr:
+    """Una linea de OCR con su posicion normalizada (0..1) dentro de la pagina."""
+    texto: str
+    x_min: float
+    x_max: float
+    y_min: float
+    y_max: float
+
+    @property
+    def centro_x(self) -> float:
+        return (self.x_min + self.x_max) / 2
 
 
 class DocumentAIService:
@@ -50,7 +74,7 @@ class DocumentAIService:
                 raise ValueError("DocumentAI excedio el limite de paginas del documento") from e
             raise
 
-        texto = result.document.text
+        texto = self.texto_por_filas(result.document)
         RequestCache.objects.guardar_request_cache(
             model=MODEL_DOCAI,
             request_text="",
@@ -58,6 +82,117 @@ class DocumentAIService:
             response_text=texto,
         )
         return texto
+
+    @staticmethod
+    def texto_por_filas(document: documentai.Document) -> str:
+        """Rearma el texto respetando la estructura visual.
+
+        `document.text` entrega las lineas en el orden de lectura que decide DocumentAI, que en un
+        comprobante a dos columnas agrupa primero las etiquetas y despues los valores (se pierde la
+        relacion etiqueta/valor). Como cada linea trae su bounding box, aca se reagrupan las que
+        estaban a la misma altura en la imagen y se unen con " | ", separando antes las sub-imagenes
+        que vengan pegadas lado a lado.
+        """
+        filas: list[str] = []
+        for numero, pagina in enumerate(document.pages, start=1):
+            lineas = [DocumentAIService.leer_linea(linea.layout, document.text) for linea in pagina.lines]
+            visibles = [linea for linea in lineas if linea is not None]
+            if not visibles:
+                continue
+            # Las columnas se emiten una despues de otra, sin marcarlas: marcarlas hacia que el LLM
+            # contara "una transferencia por columna" en vez de contar por contenido.
+            filas.append(f"[pagina {numero}]")
+            for columna in DocumentAIService.separar_columnas(visibles):
+                filas.extend(DocumentAIService.agrupar_en_filas(columna))
+
+        if not filas:
+            logger.warning("DocumentAI no devolvio lineas con geometria; se usa el texto plano.")
+            return document.text
+        return "\n".join(filas)
+
+    @staticmethod
+    def leer_linea(layout: documentai.Document.Page.Layout, texto_documento: str) -> "LineaOcr | None":
+        texto = "".join(
+            texto_documento[int(segmento.start_index):int(segmento.end_index)]
+            for segmento in layout.text_anchor.text_segments
+        ).strip()
+        vertices = layout.bounding_poly.normalized_vertices
+        if not texto or not vertices:
+            return None
+        return LineaOcr(
+            texto=texto,
+            x_min=min(vertice.x for vertice in vertices),
+            x_max=max(vertice.x for vertice in vertices),
+            y_min=min(vertice.y for vertice in vertices),
+            y_max=max(vertice.y for vertice in vertices),
+        )
+
+    @staticmethod
+    def separar_columnas(lineas: list["LineaOcr"]) -> list[list["LineaOcr"]]:
+        """Separa las sub-imagenes que vienen pegadas lado a lado en un mismo comprobante.
+
+        Cuando alguien pega varias capturas en una sola imagen, unirlas por altura mezcla el
+        comprobante de la izquierda con el de la derecha. Una canaleta vertical vacia de punta a
+        punta delata esa separacion: dentro de un mismo comprobante siempre hay algo (titulo,
+        botones, totales) que la cruza.
+        """
+        ocupado = [False] * BINS_X
+        for linea in lineas:
+            desde = max(0, int(linea.x_min * BINS_X))
+            hasta = min(BINS_X - 1, int(linea.x_max * BINS_X))
+            for indice in range(desde, hasta + 1):
+                ocupado[indice] = True
+
+        cortes = [
+            (inicio + fin) / 2 / BINS_X
+            for inicio, fin in DocumentAIService.tramos_vacios(ocupado)
+            if inicio > 0 and (fin - inicio) / BINS_X >= ANCHO_MINIMO_CANALETA
+        ]
+        if not cortes:
+            return [lineas]
+
+        grupos: list[list[LineaOcr]] = [[] for _ in range(len(cortes) + 1)]
+        for linea in lineas:
+            grupos[sum(1 for corte in cortes if linea.centro_x > corte)].append(linea)
+        return [grupo for grupo in grupos if grupo]
+
+    @staticmethod
+    def tramos_vacios(ocupado: list[bool]) -> list[tuple[int, int]]:
+        """Tramos [inicio, fin) sin ninguna linea. El tramo final (margen derecho) queda fuera."""
+        tramos: list[tuple[int, int]] = []
+        inicio = None
+        for indice, lleno in enumerate(ocupado):
+            if not lleno and inicio is None:
+                inicio = indice
+            elif lleno and inicio is not None:
+                tramos.append((inicio, indice))
+                inicio = None
+        return tramos
+
+    @staticmethod
+    def agrupar_en_filas(lineas: list["LineaOcr"]) -> list[str]:
+        filas: list[str] = []
+        actual: list[LineaOcr] = []
+        for linea in sorted(lineas, key=lambda item: (item.y_min, item.x_min)):
+            if actual and DocumentAIService.misma_fila(actual[0], linea):
+                actual.append(linea)
+                continue
+            if actual:
+                filas.append(DocumentAIService.unir_fila(actual))
+            actual = [linea]
+        if actual:
+            filas.append(DocumentAIService.unir_fila(actual))
+        return filas
+
+    @staticmethod
+    def misma_fila(referencia: "LineaOcr", linea: "LineaOcr") -> bool:
+        solape = min(referencia.y_max, linea.y_max) - max(referencia.y_min, linea.y_min)
+        alto = min(referencia.y_max - referencia.y_min, linea.y_max - linea.y_min)
+        return alto > 0 and solape >= alto * SOLAPE_MINIMO_FILA
+
+    @staticmethod
+    def unir_fila(lineas: list["LineaOcr"]) -> str:
+        return " | ".join(linea.texto for linea in sorted(lineas, key=lambda item: item.x_min))
 
     @staticmethod
     def es_error_limite_paginas(error: InvalidArgument) -> bool:

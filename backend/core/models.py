@@ -1,6 +1,6 @@
 from django.db import models
 from .choices import CanalContacto, EstadoCRM, TipoPago, Situacion, CuotaEstado
-from .managers import CRMFilaManager, CuotaManager, RequestCacheManager
+from .managers import CRMFilaManager, CuotaManager, PagoManager, RequestCacheManager
 # Create your models here.
 
 #CREDITO
@@ -91,3 +91,61 @@ class RequestCache(models.Model):
         ]
 
 #PAGO / SE OBTENDRA DESDE EL LLM / VARIOS CAMPOS DEBERAN SER NULLABLES
+# Cabecera: una fila por carga de comprobantes (= un PDF, con N imagenes de transferencia dentro).
+class Pago(models.Model):
+    id = models.AutoField(primary_key=True)
+    crm_fila_id = models.ForeignKey(CRMFila, on_delete=models.CASCADE, db_column='crm_fila_id', related_name='pagos')
+    pdf_path = models.CharField(max_length=255)
+    monto_total = models.IntegerField()
+    fecha_pago = models.DateField(null=True)
+    cuenta_destino = models.CharField(max_length=50, null=True)
+    cuentas_distintas = models.BooleanField(default=False)
+    cantidad_transferencias = models.IntegerField(default=0)
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    objects = PagoManager()
+
+    def __str__(self):
+        return f"Pago {self.id}: {self.monto_total} en {self.cantidad_transferencias} transferencia(s)"
+
+    class Meta:
+        db_table = 'db_pago'
+
+
+# Detalle: una fila por transferencia identificada dentro del PDF.
+class PagoTransferencia(models.Model):
+    id = models.AutoField(primary_key=True)
+    pago_id = models.ForeignKey(Pago, on_delete=models.CASCADE, db_column='pago_id', related_name='transferencias')
+    orden = models.IntegerField()
+    monto = models.IntegerField()
+    fecha = models.DateField(null=True)
+    cuenta_destino = models.CharField(max_length=50, null=True)
+    banco = models.CharField(max_length=100, null=True)
+    n_operacion = models.CharField(max_length=50, null=True)
+
+    def __str__(self):
+        return f"Transferencia {self.orden} del pago {self.pago_id_id}: {self.monto}"
+
+    class Meta:
+        db_table = 'db_pago_transferencia'
+        ordering = ['orden']
+        constraints = [
+            models.UniqueConstraint(fields=['pago_id', 'orden'], name='uq_pago_transferencia_orden'),
+        ]
+
+
+# Imputacion: cuanto del pago se aplica a cada cuota comprometida.
+class PagoCuota(models.Model):
+    id = models.AutoField(primary_key=True)
+    pago_id = models.ForeignKey(Pago, on_delete=models.CASCADE, db_column='pago_id', related_name='imputaciones')
+    cuota_id = models.ForeignKey(Cuota, on_delete=models.CASCADE, db_column='cuota_id', related_name='imputaciones')
+    monto_imputado = models.IntegerField()
+
+    def __str__(self):
+        return f"Pago {self.pago_id_id} imputa {self.monto_imputado} a la cuota {self.cuota_id_id}"
+
+    class Meta:
+        db_table = 'db_pago_cuota'
+        constraints = [
+            models.UniqueConstraint(fields=['pago_id', 'cuota_id'], name='uq_pago_cuota'),
+        ]

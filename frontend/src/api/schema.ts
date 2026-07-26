@@ -68,6 +68,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/cartera/{id}/pago/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["cartera_pago_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/token/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["token_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -154,12 +186,47 @@ export interface components {
         CuotaEstadoEnum: "vencida" | "vigente";
         /** @enum {unknown} */
         NullEnum: null;
+        Pago: {
+            readonly id: number;
+            pdf_path: string;
+            monto_total: number;
+            readonly monto_comprometido: number;
+            /** Format: date */
+            fecha_pago?: string | null;
+            cuenta_destino?: string | null;
+            cuentas_distintas?: boolean;
+            cantidad_transferencias?: number;
+            /** Format: date-time */
+            readonly creado_en: string;
+            readonly transferencias: components["schemas"]["PagoTransferencia"][];
+            readonly imputaciones: components["schemas"]["PagoCuota"][];
+        };
+        PagoCarga: {
+            imagenes: string[];
+        };
+        PagoCuota: {
+            cuota_id: number;
+            /** Format: date */
+            readonly cuota_fecha: string;
+            readonly cuota_monto: number;
+            monto_imputado: number;
+        };
         /**
          * @description * `total` - Total
          *     * `parcial` - Parcial
          * @enum {string}
          */
         PagoEnum: "total" | "parcial";
+        PagoTransferencia: {
+            readonly id: number;
+            orden: number;
+            monto: number;
+            /** Format: date */
+            fecha?: string | null;
+            cuenta_destino?: string | null;
+            banco?: string | null;
+            n_operacion?: string | null;
+        };
         /**
          * @description * `pendiente` - Pendiente
          *     * `validado` - Validado
@@ -269,6 +336,50 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CRMFila"];
                 };
+            };
+        };
+    };
+    cartera_pago_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this credito. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["PagoCarga"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Pago"];
+                };
+            };
+        };
+    };
+    token_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

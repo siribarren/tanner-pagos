@@ -17,15 +17,22 @@ def obtener_token(request):
     refresh = RefreshToken.for_user(user)
     return Response({"access": str(refresh.access_token), "refresh": str(refresh)})
 
-from .choices import CuotaEstado
+from rest_framework import status
+from rest_framework.exceptions import ValidationError
+from rest_framework.parsers import MultiPartParser
+
+from .choices import CuotaEstado, EstadoCRM
 from .email_service import enviar_compromiso_creado
 from .models import CRMFila, Credito, Cuota
+from .pago_service import procesar_comprobantes
 from .serializers import (
     CarteraDetailSerializer,
     CarteraListSerializer,
     CompromisoCreateSerializer,
     ContactoCreateSerializer,
     CRMFilaSerializer,
+    PagoCargaSerializer,
+    PagoSerializer,
 )
 
 
@@ -88,3 +95,21 @@ class CarteraViewSet(viewsets.ReadOnlyModelViewSet):
         )
         enviar_compromiso_creado(credito.correo_deudor, data["fecha_compromiso"], data["monto"])
         return Response(CRMFilaSerializer(fila).data)
+
+    @extend_schema(tags=["Cartera"], request=PagoCargaSerializer, responses=PagoSerializer)
+    @action(detail=True, methods=["post"], url_path="pago", parser_classes=[MultiPartParser])
+    def pago(self, request, pk=None):
+        credito = self.get_object()
+        serializer = PagoCargaSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        fila = CRMFila.objects.para_credito(credito).first()
+        if fila is None or fila.estado != EstadoCRM.COMPROMETIDO:
+            raise ValidationError({"credito": "El credito no tiene un compromiso de pago vigente."})
+
+        try:
+            pago = procesar_comprobantes(fila, credito.id, serializer.validated_data["imagenes"])
+        except ValueError as e:
+            raise ValidationError({"imagenes": str(e)})
+
+        return Response(PagoSerializer(pago).data, status=status.HTTP_201_CREATED)

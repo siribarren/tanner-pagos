@@ -1,22 +1,12 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, ArrowLeft, CheckCircle2, Download, FileText, Upload, X, Zap } from "lucide-react";
 import { C, clp } from "../theme";
-import { CARTERA_EJECUTIVO, MONTO_TRANSFERIDO_2941087 } from "../data";
+import { getCarteraDetalle } from "../../api/cartera";
+import { cargarComprobantes, MAX_COMPROBANTES, TIPOS_COMPROBANTE, type Pago } from "../../api/pagos";
 import type { Screen } from "../types";
 import { Btn, Card } from "../ui";
 import { ProgressModal, type ProgressStep } from "../ProgressModal";
 import { DatePicker } from "../DatePicker";
-
-// El crédito 2941087 (Claudia Reyes Mora) es el caso de ejemplo donde el monto
-// transferido no coincide con lo comprometido: el OCR extrae un monto distinto y
-// se marca como observación a revisar en la Cuadratura, en vez del resultado
-// "sin duplicados" que ven el resto de los créditos.
-const OCR_MISMATCH: Record<string, { monto: string; observacion: string }> = {
-  "2941087": {
-    monto: clp(MONTO_TRANSFERIDO_2941087),
-    observacion: "Observación: el monto transferido no coincide con el compromiso. Se debe revisar la cuadratura.",
-  },
-};
 
 // PDF mínimo válido, codificado como data URI, para que los comprobantes
 // simulados (subidos y el de pago presencial) sean realmente descargables en
@@ -35,29 +25,29 @@ function fakePdfHref(titulo: string) {
 const PASOS_EVALUAR_COMPLETO: ProgressStep[] = [
   {
     key: "leer",
-    title: "Leyendo imagen",
-    runningText: "Extrayendo el contenido de los archivos cargados.",
-    successText: "Archivos leídos correctamente.",
-    errorText: "Error al leer los archivos. Verifica que no estén dañados.",
+    title: "Leyendo comprobantes",
+    runningText: "Uniendo las imágenes en un PDF y extrayendo el texto con DocumentAI.",
+    successText: "Comprobantes leídos correctamente.",
+    errorText: "Error al leer los comprobantes. Verifica que las imágenes no estén dañadas.",
   },
   {
     key: "analizar",
     title: "Analizando datos con IA",
-    runningText: "Identificando monto, fecha, banco y folio de la transferencia.",
-    successText: "Datos identificados con éxito.",
+    runningText: "Identificando cuántas transferencias hay y el monto, fecha y cuenta destino de cada una.",
+    successText: "Transferencias identificadas con éxito.",
     errorText: "Error al analizar los datos con IA.",
   },
   {
     key: "obtener",
-    title: "Datos obtenidos",
-    runningText: "Confirmando los datos extraídos contra Mónaco.",
-    successText: "Datos obtenidos y validados.",
-    errorText: "Error al obtener los datos. No se pudo validar contra Mónaco.",
+    title: "Registrando el pago",
+    runningText: "Guardando el pago y el detalle de cada transferencia.",
+    successText: "Pago registrado con éxito.",
+    errorText: "Error al registrar el pago.",
   },
   {
     key: "cuadrar",
     title: "Realizando cuadratura",
-    runningText: "Calculando la imputación del pago.",
+    runningText: "Imputando el pago a las cuotas comprometidas.",
     successText: "Cuadratura realizada con éxito.",
     errorText: "Error al realizar la cuadratura.",
   },
@@ -101,36 +91,86 @@ const dateInputStyle: React.CSSProperties = {
 
 type EvalEstado = "idle" | "progreso" | "listo";
 
-export function Comprobante({ navigate, idCredito }: { navigate: (s: Screen) => void; idCredito: string }) {
-  const mismatch = OCR_MISMATCH[idCredito];
-  const rut = CARTERA_EJECUTIVO.find((c) => c.id === idCredito)?.rut ?? "—";
+function formatFecha(valor?: string | null) {
+  if (!valor) return "—";
+  const [year, month, day] = valor.split("-");
+  return year && month && day ? `${day}/${month}/${year}` : valor;
+}
 
-  const [archivos, setArchivos] = useState<string[]>([]);
+// Tablita compacta para el detalle del pago (transferencias e imputación).
+function Detalle({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+  return (
+    <div style={{ marginTop: "16px" }}>
+      <div style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted, marginBottom: "8px" }}>{titulo}</div>
+      <div style={{ border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden" }}>{children}</div>
+    </div>
+  );
+}
+
+function Fila({ columnas, ultima, children }: { columnas: string; ultima: boolean; children: React.ReactNode }) {
+  return (
+    <div style={{
+      display: "grid", gridTemplateColumns: columnas, gap: "10px", alignItems: "center",
+      padding: "10px 12px", fontSize: "12px", color: C.navy, fontFamily: C.mono,
+      borderBottom: ultima ? "none" : `1px solid ${C.border}`,
+    }}>
+      {children}
+    </div>
+  );
+}
+
+export function Comprobante({ navigate, idCredito }: { navigate: (s: Screen) => void; idCredito: string }) {
+  const [rut, setRut] = useState("—");
+  const [archivos, setArchivos] = useState<File[]>([]);
+  const [pago, setPago] = useState<Pago | null>(null);
   const [montoPresencial, setMontoPresencial] = useState<number>(0);
   const [fechaPresencial, setFechaPresencial] = useState("");
   const [horaPresencial, setHoraPresencial] = useState("");
   const [estado, setEstado] = useState<EvalEstado>("idle");
   const [runId, setRunId] = useState(0);
+  const inputArchivos = useRef<HTMLInputElement>(null);
 
-  const agregarArchivo = () => {
-    setArchivos((prev) => [...prev, `comprobante_${prev.length + 1}.pdf`]);
+  useEffect(() => {
+    let mounted = true;
+    getCarteraDetalle(idCredito)
+      .then((detalle) => {
+        if (mounted) setRut(detalle.credito.rut);
+      })
+      .catch((error) => console.error(error));
+    return () => {
+      mounted = false;
+    };
+  }, [idCredito]);
+
+  // URLs locales para poder previsualizar/descargar los archivos que el ejecutivo cargó.
+  const previews = useMemo(() => archivos.map((archivo) => URL.createObjectURL(archivo)), [archivos]);
+  useEffect(() => () => previews.forEach(URL.revokeObjectURL), [previews]);
+
+  const agregarArchivos = (seleccion: FileList | null) => {
+    if (!seleccion) return;
+    const validos = Array.from(seleccion).filter((archivo) => TIPOS_COMPROBANTE.includes(archivo.type));
+    setArchivos((prev) => [...prev, ...validos].slice(0, MAX_COMPROBANTES));
   };
-  const quitarArchivo = (nombre: string) => {
-    setArchivos((prev) => prev.filter((a) => a !== nombre));
+  const quitarArchivo = (indice: number) => {
+    setArchivos((prev) => prev.filter((_, i) => i !== indice));
   };
 
   // Pago presencial sin ningún archivo cargado: habilita igual el botón, pero
   // sin OCR ni análisis IA, y con un tiempo de proceso menor.
   const soloPresencial = archivos.length === 0 && montoPresencial > 0 && fechaPresencial !== "";
   const habilitado = archivos.length > 0 || (montoPresencial > 0 && fechaPresencial !== "");
+  const diferencia = pago ? pago.monto_total - pago.monto_comprometido : 0;
+  const hayObservacion = pago !== null && (pago.cuentas_distintas || diferencia !== 0);
+  const hayResultado = estado === "listo" && (soloPresencial || pago !== null);
 
   const evaluar = () => {
+    setPago(null);
     setEstado("progreso");
     setRunId((r) => r + 1);
   };
   const reintentar = () => setRunId((r) => r + 1);
 
-  const botonPrincipalLabel = estado === "listo" ? "Revisar cuadratura" : "Validar pago";
+  const botonPrincipalLabel = hayResultado ? "Revisar cuadratura" : "Validar pago";
 
   return (
     <>
@@ -159,8 +199,21 @@ export function Comprobante({ navigate, idCredito }: { navigate: (s: Screen) => 
         <Card style={{ padding: "36px 24px", textAlign: "center", border: `2px dashed ${C.border}`, marginBottom: "20px" }}>
           <Upload size={32} color={C.muted} style={{ margin: "0 auto 12px" }} />
           <div style={{ fontSize: "16px", fontWeight: 700, color: C.navy, marginBottom: "6px" }}>Carga uno o más comprobantes de transferencia</div>
-          <p style={{ margin: "0 0 18px", fontSize: "13px", color: C.muted }}>JPG, PNG o PDF · El sistema extrae monto, fecha, banco y folio automáticamente</p>
-          <Btn label="Seleccionar archivo" icon={Upload} onClick={agregarArchivo} />
+          <p style={{ margin: "0 0 18px", fontSize: "13px", color: C.muted }}>
+            JPG, JPEG, PNG o PDF (máximo {MAX_COMPROBANTES}) · Se unen en un solo PDF, una página por imagen, y el sistema extrae monto, fecha y cuenta destino de cada transferencia
+          </p>
+          <input
+            ref={inputArchivos}
+            type="file"
+            accept="image/png,image/jpeg,application/pdf"
+            multiple
+            style={{ display: "none" }}
+            onChange={(e) => {
+              agregarArchivos(e.target.files);
+              e.target.value = "";
+            }}
+          />
+          <Btn label="Seleccionar archivo" icon={Upload} onClick={() => inputArchivos.current?.click()} />
         </Card>
 
         {archivos.length > 0 && (
@@ -168,30 +221,29 @@ export function Comprobante({ navigate, idCredito }: { navigate: (s: Screen) => 
             <div style={{ padding: "14px 18px", borderBottom: `1px solid ${C.border}`, fontSize: "13px", fontWeight: 800, color: C.navy }}>
               Archivos cargados ({archivos.length})
             </div>
-            {archivos.map((a, i) => (
-              <div key={a} style={{
+            {archivos.map((archivo, i) => (
+              <div key={`${archivo.name}-${i}`} style={{
                 display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px",
                 padding: "12px 18px", borderBottom: i < archivos.length - 1 ? `1px solid ${C.border}` : "none",
               }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                   <FileText size={16} color={C.red} />
-                  <span style={{ fontSize: "13px", fontWeight: 700, color: C.navy }}>{a}</span>
+                  <span style={{ fontSize: "13px", fontWeight: 700, color: C.navy }}>{archivo.name}</span>
+                  <span style={{ fontSize: "11px", color: C.muted, fontFamily: C.mono }}>página {i + 1}</span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                  {estado === "listo" && (
-                    <a
-                      href={fakePdfHref(a)}
-                      download={a}
-                      aria-label={`Descargar ${a}`}
-                      style={{ display: "inline-flex", border: "none", background: "transparent", cursor: "pointer", color: C.blue, padding: "4px", textDecoration: "none" }}
-                    >
-                      <Download size={16} />
-                    </a>
-                  )}
+                  <a
+                    href={previews[i]}
+                    download={archivo.name}
+                    aria-label={`Descargar ${archivo.name}`}
+                    style={{ display: "inline-flex", border: "none", background: "transparent", cursor: "pointer", color: C.blue, padding: "4px", textDecoration: "none" }}
+                  >
+                    <Download size={16} />
+                  </a>
                   <button
                     type="button"
-                    onClick={() => quitarArchivo(a)}
-                    aria-label={`Eliminar ${a}`}
+                    onClick={() => quitarArchivo(i)}
+                    aria-label={`Eliminar ${archivo.name}`}
                     style={{ border: "none", background: "transparent", cursor: "pointer", color: C.muted, padding: "4px" }}
                   >
                     <X size={16} />
@@ -250,9 +302,9 @@ export function Comprobante({ navigate, idCredito }: { navigate: (s: Screen) => 
           </div>
         </Card>
 
-        {estado === "listo" && (
-          <Card style={{ padding: "18px 20px", marginBottom: "20px", borderLeft: `4px solid ${mismatch ? C.amber : C.green}` }}>
-            {soloPresencial ? (
+        {hayResultado && (
+          <Card style={{ padding: "18px 20px", marginBottom: "20px", borderLeft: `4px solid ${hayObservacion ? C.amber : C.green}` }}>
+            {!pago ? (
               <>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                   <CheckCircle2 size={20} color={C.green} />
@@ -277,22 +329,24 @@ export function Comprobante({ navigate, idCredito }: { navigate: (s: Screen) => 
             ) : (
               <>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  {mismatch ? <AlertTriangle size={20} color={C.amber} /> : <CheckCircle2 size={20} color={C.green} />}
+                  {hayObservacion ? <AlertTriangle size={20} color={C.amber} /> : <CheckCircle2 size={20} color={C.green} />}
                   <div>
                     <div style={{ fontSize: "14px", fontWeight: 700, color: C.navy }}>
-                      {mismatch ? "Comprobante analizado · observación detectada" : "Comprobante analizado · cuadratura realizada"}
+                      {hayObservacion ? "Comprobantes analizados · observación detectada" : "Comprobantes analizados · cuadratura realizada"}
                     </div>
-                    <div style={{ fontSize: "12px", color: C.muted }}>Confianza 92% · {archivos.length} archivo{archivos.length > 1 ? "s" : ""} procesado{archivos.length > 1 ? "s" : ""}</div>
+                    <div style={{ fontSize: "12px", color: C.muted }}>
+                      {pago.transferencias.length} transferencia{pago.transferencias.length > 1 ? "s" : ""} en {archivos.length} imagen{archivos.length > 1 ? "es" : ""} · {pago.pdf_path}
+                    </div>
                   </div>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "12px", marginTop: "14px" }}>
                   {[
-                    { label: "Monto OCR",       val: mismatch?.monto ?? "$250.000" },
-                    { label: "Fecha pago",      val: "05/07/2026" },
-                    { label: "Banco origen",    val: "Banco de Chile" },
-                    { label: "N° operación",    val: "0098231457" },
-                    { label: "N° comprobante",  val: "774102" },
-                    { label: "Nombre pagador",  val: "Titular de la cuenta origen" },
+                    { label: "Monto transferido", val: clp(pago.monto_total) },
+                    { label: "Comprometido",      val: clp(pago.monto_comprometido) },
+                    { label: "Diferencia",        val: clp(diferencia) },
+                    { label: "Fecha pago",        val: formatFecha(pago.fecha_pago) },
+                    { label: "Cuenta destino",    val: pago.cuenta_destino ?? "—" },
+                    { label: "Transferencias",    val: String(pago.transferencias.length) },
                   ].map(({ label, val }) => (
                     <div key={label} style={{ padding: "10px 12px", borderRadius: "10px", background: C.bg, border: `1px solid ${C.border}` }}>
                       <div style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted }}>{label}</div>
@@ -301,14 +355,40 @@ export function Comprobante({ navigate, idCredito }: { navigate: (s: Screen) => 
                   ))}
                 </div>
 
-                {mismatch ? (
+                <Detalle titulo="Transferencias detectadas">
+                  {pago.transferencias.map((transferencia, i) => (
+                    <Fila key={transferencia.id} columnas="52px 1fr 1fr 1fr 1fr" ultima={i === pago.transferencias.length - 1}>
+                      <span style={{ color: C.muted }}>#{transferencia.orden}</span>
+                      <span style={{ fontWeight: 800 }}>{clp(transferencia.monto)}</span>
+                      <span>{formatFecha(transferencia.fecha)}</span>
+                      <span>{transferencia.banco ?? "—"}</span>
+                      <span style={{ color: C.muted }}>{transferencia.cuenta_destino ?? "—"}</span>
+                    </Fila>
+                  ))}
+                </Detalle>
+
+                <Detalle titulo="Imputación a cuotas comprometidas">
+                  {pago.imputaciones.map((imputacion, i) => (
+                    <Fila key={imputacion.cuota_id} columnas="1fr 1fr 1fr" ultima={i === pago.imputaciones.length - 1}>
+                      <span>Cuota {formatFecha(imputacion.cuota_fecha)}</span>
+                      <span style={{ color: C.muted }}>{clp(imputacion.cuota_monto)}</span>
+                      <span style={{ fontWeight: 800 }}>{clp(imputacion.monto_imputado)}</span>
+                    </Fila>
+                  ))}
+                </Detalle>
+
+                {hayObservacion ? (
                   <div style={{
                     display: "flex", alignItems: "flex-start", gap: "8px",
                     marginTop: "14px", padding: "10px 12px", borderRadius: "10px",
                     background: C.amberSoft, border: "1px solid rgba(217,119,6,0.25)",
                   }}>
                     <AlertTriangle size={14} color={C.amber} style={{ flexShrink: 0, marginTop: "1px" }} />
-                    <span style={{ fontSize: "12px", fontWeight: 700, color: "#7a4a00", lineHeight: 1.45 }}>{mismatch.observacion}</span>
+                    <span style={{ fontSize: "12px", fontWeight: 700, color: "#7a4a00", lineHeight: 1.45 }}>
+                      {pago.cuentas_distintas
+                        ? "Observación: los comprobantes apuntan a cuentas destino distintas entre sí. Se debe revisar la cuadratura."
+                        : `Observación: el monto transferido no coincide con el compromiso (diferencia de ${clp(diferencia)}). Se debe revisar la cuadratura.`}
+                    </span>
                   </div>
                 ) : (
                   <div style={{
@@ -317,7 +397,7 @@ export function Comprobante({ navigate, idCredito }: { navigate: (s: Screen) => 
                     background: C.greenSoft,
                   }}>
                     <CheckCircle2 size={14} color={C.green} />
-                    <span style={{ fontSize: "12px", fontWeight: 700, color: "#0c5e2e" }}>Validación de duplicidad: sin duplicados detectados</span>
+                    <span style={{ fontSize: "12px", fontWeight: 700, color: "#0c5e2e" }}>El monto transferido coincide con el compromiso.</span>
                   </div>
                 )}
               </>
@@ -327,8 +407,8 @@ export function Comprobante({ navigate, idCredito }: { navigate: (s: Screen) => 
 
         <Btn
           label={botonPrincipalLabel}
-          icon={estado === "listo" ? Zap : undefined}
-          onClick={() => (estado === "listo" ? navigate("cuadratura") : evaluar())}
+          icon={hayResultado ? Zap : undefined}
+          onClick={() => (hayResultado ? navigate("cuadratura") : evaluar())}
           disabled={!habilitado}
           full
         />
@@ -342,6 +422,7 @@ export function Comprobante({ navigate, idCredito }: { navigate: (s: Screen) => 
         steps={soloPresencial ? PASOS_EVALUAR_PRESENCIAL : PASOS_EVALUAR_COMPLETO}
         totalSeconds={soloPresencial ? 6 : 15}
         resumen={soloPresencial ? RESUMEN_PRESENCIAL : RESUMEN_COMPLETO}
+        task={soloPresencial ? undefined : () => cargarComprobantes(idCredito, archivos).then(setPago)}
         onClose={() => setEstado("listo")}
         onRetry={reintentar}
       />

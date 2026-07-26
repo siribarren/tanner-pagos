@@ -30,6 +30,7 @@ export function ProgressModal({
   onSuccess,
   onError,
   totalSeconds: totalSecondsProp,
+  task,
 }: {
   open: boolean;
   runId: number;
@@ -45,6 +46,11 @@ export function ProgressModal({
   onError?: () => void;
   /** Duración total en segundos. Por defecto STEP_DURATION segundos por paso. */
   totalSeconds?: number;
+  /**
+   * Trabajo real del proceso. Si viene, la barra avanza como estimación pero el
+   * éxito/fracaso lo decide la promesa (no el temporizador ni la falla simulada).
+   */
+  task?: () => Promise<unknown>;
 }) {
   const totalSeconds = totalSecondsProp ?? steps.length * STEP_DURATION;
   const stepDuration = totalSeconds / steps.length;
@@ -54,10 +60,21 @@ export function ProgressModal({
   const [remaining, setRemaining] = useState(totalSeconds);
   const [failedStep, setFailedStep] = useState<number | null>(null);
   const [failedProgress, setFailedProgress] = useState(0);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Último `elapsed` visto, para saber en qué paso estaba el proceso cuando la
+  // promesa de `task` falla (el callback no ve el estado más reciente).
+  const elapsedRef = useRef(0);
+  elapsedRef.current = elapsed;
 
   // Plan de falla (si la corre esta vez y en qué instante) — solo lectura para
   // el efecto de abajo, no necesita disparar renders por sí mismo.
   const planRef = useRef<{ plannedFailureStep: number | null; failureThreshold: number | null }>({ plannedFailureStep: null, failureThreshold: null });
+
+  // `task` suele ser una función inline del padre: se guarda en un ref para que
+  // no reinicie el proceso en cada render (el efecto solo depende de open/runId).
+  const taskRef = useRef(task);
+  taskRef.current = task;
 
   // Arranca/reinicia el cronómetro: el intervalo solo avanza `elapsed`, un
   // valor puro — nada de setState de otros componentes (onSuccess/onError)
@@ -65,7 +82,9 @@ export function ProgressModal({
   useEffect(() => {
     if (!open) return;
 
-    const shouldFail = Math.random() < 0.3;
+    const currentTask = taskRef.current;
+    // Con trabajo real no hay falla simulada: la promesa decide.
+    const shouldFail = !currentTask && Math.random() < 0.3;
     const plannedFailureStep = shouldFail ? Math.floor(Math.random() * steps.length) : null;
     const failureThreshold = plannedFailureStep === null ? null : plannedFailureStep * stepDuration + Math.min(2, stepDuration / 2);
     planRef.current = { plannedFailureStep, failureThreshold };
@@ -75,12 +94,35 @@ export function ProgressModal({
     setRemaining(totalSeconds);
     setFailedStep(null);
     setFailedProgress(0);
+    setErrorMessage(null);
 
+    // Con trabajo real la barra se queda a un segundo del final hasta que responda.
+    const tope = currentTask ? totalSeconds - 1 : totalSeconds;
     const timer = window.setInterval(() => {
-      setElapsed((currentElapsed) => Math.min(currentElapsed + 1, totalSeconds));
+      setElapsed((currentElapsed) => Math.min(currentElapsed + 1, tope));
     }, 1000);
 
-    return () => window.clearInterval(timer);
+    let cancelado = false;
+    currentTask?.().then(
+      () => {
+        if (!cancelado) setElapsed(totalSeconds);
+      },
+      (requestError: unknown) => {
+        if (cancelado) return;
+        window.clearInterval(timer);
+        setMode("error");
+        setFailedStep(Math.min(Math.floor(elapsedRef.current / stepDuration), steps.length - 1));
+        setFailedProgress(50);
+        setErrorMessage(requestError instanceof Error ? requestError.message : null);
+        onError?.();
+      },
+    );
+
+    return () => {
+      cancelado = true;
+      window.clearInterval(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, runId, steps, totalSeconds, stepDuration]);
 
   // Reacciona a cada tick: decide si toca fallar, tener éxito, o seguir
@@ -330,7 +372,7 @@ export function ProgressModal({
               {mode === "error" ? "Proceso interrumpido" : mode === "success" ? "Proceso completado" : "Información del proceso"}
             </div>
             <div style={{ fontSize: "13px", color: C.navy, lineHeight: 1.5 }}>
-              {mode === "error" ? resumen.error : mode === "success" ? resumen.success : resumen.running}
+              {mode === "error" ? (errorMessage ?? resumen.error) : mode === "success" ? resumen.success : resumen.running}
             </div>
           </div>
 

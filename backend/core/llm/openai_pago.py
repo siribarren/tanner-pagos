@@ -42,38 +42,56 @@ class OpenAiPagoService:
             return pago_respuesta
         except Exception as e:
             logger.error(f"Error al obtener el pago: {e}")
-            return PagoResponse()
+            raise ValueError("No se pudo extraer el detalle del pago desde los comprobantes.") from e
 
     @staticmethod
     def get_prompt(texto: str, cantidad_transferencias: int) -> str:
         cabecera = f"""
-        A continuacion se te presentará el texto OCR (ruidoso, con lineas sueltas y posibles
-        errores) de {cantidad_transferencias} comprobante(s) de transferencia bancaria.
+        A continuacion se te presentará el texto OCR de {cantidad_transferencias} comprobante(s) de
+        transferencia bancaria.
+
+        Formato del texto:
+            - Viene reconstruido desde la imagen: cada fila junta con " | " los textos que estaban a la
+              misma altura, normalmente "etiqueta | valor". Un valor puede continuar en la fila siguiente.
+            - "[pagina N]" marca el inicio de cada imagen cargada. Una misma pagina puede traer varias
+              capturas pegadas lado a lado: si dentro de una fila se repite una etiqueta ("Monto
+              transferido | Monto transferido"), son comprobantes distintos y cada uno va con su
+              propio monto y hora.
 
         Contexto:
-            - Cada comprobante suele repetir las mismas etiquetas: "Monto transferido", "Destinatario",
-              "Institución financiera", "Tipo de cuenta", "Número de cuenta" (o "Nº de cuenta"),
-              "Fecha y hora" (o "Fecha" / "Hora" en lineas separadas).
+            - Cada banco usa etiquetas distintas para lo mismo. Considera equivalentes:
+              monto = "Monto" / "Monto transferido"; destinatario = "Destinatario" / "Beneficiario";
+              banco = "Banco" / "Institución financiera"; cuenta = "Cuenta" / "Nº de cuenta" /
+              "Número de cuenta"; y el valor de la cuenta puede venir con su tipo ("Cuenta Corriente
+              8013244705", "Cuenta Vista 123", "CuentaRUT 00021326044").
             - El monto aparece como texto tipo "$250.000".
             - La fecha de la transferencia aparece cerca de "Fecha y hora"/"Fecha", en formatos como
               "15 jun. 2026 12:31 hrs" o "15/06/2026". NO la confundas con el "Nº de operación",
               el "RUT"/"C.I.", el "TELEFONO", ni con números de cuenta.
-            - Para determinar la cuenta destino de CADA comprobante, sigue este procedimiento estricto:
-              1. Busca en el texto la etiqueta literal "Número de cuenta" o "Nº de cuenta".
-              2. La cuenta destino de ese comprobante es SOLO el numero que aparece justo despues de
-                 esa etiqueta (misma linea o linea siguiente), asociado al Destinatario (no al Origen).
-              3. Cualquier otro numero que aparezca en el comprobante SIN estar precedido por esa
-                 etiqueta literal (por ejemplo, pegado al nombre del destinatario, un RUT, telefono,
-                 "Nº de operación", C.I., etc.) NO es una cuenta destino: ignoralo por completo, no lo
-                 compares ni lo reportes.
-              4. Si un comprobante no tiene la etiqueta "Número de cuenta"/"Nº de cuenta" en el texto,
-                 ese comprobante no aporta informacion de cuenta destino (no cuenta como "distinta").
+            - Para determinar la cuenta destino de CADA comprobante:
+              1. Ubica la seccion del DESTINATARIO/BENEFICIARIO. NUNCA uses la seccion de origen
+                 ("Cuenta de origen", "Origen", "Cuenta cargada", "Desde"): esa es la cuenta del pagador.
+              2. Dentro de esa seccion, la cuenta destino es el numero asociado a la etiqueta de cuenta,
+                 este en la misma fila o en la fila inmediatamente siguiente.
+              3. Reporta SOLO los digitos: si el valor dice "Cuenta Corriente 8013244705", la cuenta es
+                 "8013244705".
+              4. El RUT/C.I., el telefono, el "Nº de operación" y el correo NUNCA son cuenta destino.
+              5. Solo si ese comprobante realmente no muestra ninguna cuenta del destinatario, devuelve null.
             - cuentas_distintas = true SOLO si, entre los comprobantes donde sí identificaste la cuenta
               destino con el procedimiento anterior, hay 2 o mas numeros de cuenta diferentes entre si.
               Si todos los que tienen cuenta identificada comparten el mismo numero, cuentas_distintas
               es false y cuenta_destino es ese numero.
 
         Por favor, organiza esta información en una estructura con las siguientes columnas:
+            - transferencias: Una entrada por cada comprobante detectado (deben ser
+              {cantidad_transferencias}), en el mismo orden en que aparecen en el texto, con:
+                * orden: correlativo desde 1
+                * monto: el "Monto transferido" de ESE comprobante
+                * fecha: la fecha (formato YYYY-MM-DD) de ESE comprobante, null si no aparece
+                * cuenta_destino: la cuenta destino de ESE comprobante segun el procedimiento
+                  anterior, null si ese comprobante no la declara
+                * banco: la "Institución financiera" del destinatario, null si no aparece
+                * n_operacion: el "Nº de operación" de ESE comprobante, null si no aparece
             - pago_total: La suma en pesos de todos los "Monto transferido" encontrados
             - fecha_pago: La fecha (formato YYYY-MM-DD) mas reciente entre las fechas de transferencia
               encontradas (ej: si hay transferencias en enero, abril y diciembre del mismo año, usar la de diciembre)

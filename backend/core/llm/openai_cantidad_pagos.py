@@ -42,7 +42,7 @@ class OpenAiCantidadPagosService:
             return cantidad_pagos_respuesta
         except Exception as e:
             logger.error(f"Error al obtener la cantidad de pagos: {e}")
-            return CantidadTransferenciasResponse()
+            raise ValueError("No se pudo determinar la cantidad de transferencias del documento.") from e
 
     @staticmethod
     def get_prompt(texto: str) -> str:
@@ -50,6 +50,14 @@ class OpenAiCantidadPagosService:
         A continuacion se te presentará un texto el cual puede presentar una o varias transferencias
 
         Contexto:
+            - El texto viene reconstruido desde la imagen: cada fila junta con " | " los textos que
+              estaban a la misma altura, y "[pagina N]" marca el inicio de cada imagen cargada.
+              Normalmente cada pagina es un comprobante distinto, pero confirmalo con el contenido
+              (dos paginas pueden ser dos capturas del mismo comprobante).
+            - Una misma pagina puede traer varias capturas pegadas lado a lado, asi que cuenta siempre
+              por contenido (montos, fechas y horas distintas), nunca por numero de paginas. Si dentro
+              de una misma fila se repite una etiqueta ("Monto transferido | Monto transferido"), son
+              comprobantes distintos puestos uno al lado del otro.
             - Si no se encuentra ninguna transferencia devolver 0.
 
         Por favor, organiza esta información en una estructura con las siguientes columnas:
