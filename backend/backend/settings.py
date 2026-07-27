@@ -13,6 +13,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -108,16 +109,30 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-      "default": {
-          "ENGINE": "django.db.backends.postgresql",
-          "NAME": os.getenv("BD_NAME"),
-          "USER": os.getenv("BD_USER"),
-          "PASSWORD": os.getenv("BD_PASS"),
-          "HOST": os.getenv("BD_HOST", "localhost"),
-          "PORT": os.getenv("BD_PORT", "5434"),
-      }
-  }
+AMBIENTE = os.getenv("AMBIENTE", "").strip().lower()
+
+if AMBIENTE == "sqlite":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+elif AMBIENTE == "postgres":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv("BD_NAME"),
+            "USER": os.getenv("BD_USER"),
+            "PASSWORD": os.getenv("BD_PASS"),
+            "HOST": os.getenv("BD_HOST", "localhost"),
+            "PORT": os.getenv("BD_PORT", "5434"),
+        }
+    }
+else:
+    raise ImproperlyConfigured(
+        "AMBIENTE debe estar definido como 'sqlite' o 'postgres' en .env-desarrollo."
+    )
 
 
 # Email (notificacion de compromiso de pago)
