@@ -128,6 +128,26 @@ export function Card({ children, style }: { children: ReactNode; style?: CSSProp
   );
 }
 
+// ── Modal ──────────────────────────────────────────────────────────────────────
+// Overlay + caja centrada. El contenido lo pone cada pantalla (confirmaciones,
+// formularios). `ancho` sube el maximo para los modales con formulario adentro.
+export function Modal({ children, ancho = 440 }: { children: ReactNode; ancho?: number }) {
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 80,
+      background: "rgba(8, 15, 31, 0.48)", backdropFilter: "blur(10px)",
+      display: "flex", alignItems: "center", justifyContent: "center", padding: "20px",
+    }}>
+      <div style={{
+        width: "100%", maxWidth: `${ancho}px`, maxHeight: "88vh", overflowY: "auto",
+        borderRadius: "20px", background: C.white,
+        border: `1px solid ${C.border}`, boxShadow: "0 28px 72px rgba(0,30,61,0.25)",
+        padding: "28px 26px",
+      }}>{children}</div>
+    </div>
+  );
+}
+
 // ── HeroHeader ─────────────────────────────────────────────────────────────────
 // Banner azul con degradé usado como encabezado de las pantallas principales del
 // Ejecutivo (Panel, Compromisos, etc.): título + fecha de actualización + acciones.

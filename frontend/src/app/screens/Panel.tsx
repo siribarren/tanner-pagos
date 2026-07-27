@@ -1,30 +1,32 @@
 import { useState } from "react";
 import { C, FONT_UI, clp } from "../theme";
-import { ABONO_TRANSFERENCIA_3287612, COMPROMISOS_DETALLE } from "../data";
-import type { CarteraItem } from "../api/cartera";
+import { formatDate, type CarteraItem } from "../../api/cartera";
+import type { PagoEnviado } from "../../api/pagos";
 import { CarteraTable } from "../CarteraTable";
-import type { DetalleTipo, Rol, Screen } from "../types";
+import type { EstadoCargaPagos, Rol, Screen } from "../types";
 import { Badge, Card, GhostBtn, HeroHeader, SolidBtn, updatedAtLabel } from "../ui";
 
 // ════════════════════════════════════════════════════════════════════════════════
 // PANEL — contenido según rol: "mi día" (Ejecutivo) o Dashboard operativo (Supervisor)
 // ════════════════════════════════════════════════════════════════════════════════
-export function Panel({ rol, cartera, navigate, onSync, abrirDetalle, abrirCompromiso, irACompromisos, irAPagos }: {
-  rol: Rol; cartera: CarteraItem[]; navigate: (s: Screen) => void; onSync: () => void;
-  abrirDetalle: (tipo: DetalleTipo, idCredito: string, solcob?: string | null) => void;
+export function Panel({ rol, cartera, pagos, estadoCargaPagos, onRetryPagos, navigate, onSync, abrirDetalle, abrirCompromiso, irACompromisos, irAPagos }: {
+  rol: Rol; cartera: CarteraItem[]; pagos: PagoEnviado[]; estadoCargaPagos: EstadoCargaPagos;
+  onRetryPagos: () => void; navigate: (s: Screen) => void; onSync: () => void;
+  abrirDetalle: (idCredito: string) => void;
   abrirCompromiso: (item: CarteraItem) => void;
   irACompromisos: (situacion: string) => void;
   irAPagos: (estado: string) => void;
 }) {
   return rol === "supervisor"
     ? <DashboardOperativo navigate={navigate} onSync={onSync} />
-    : <MiDia cartera={cartera} navigate={navigate} onSync={onSync} abrirDetalle={abrirDetalle} abrirCompromiso={abrirCompromiso} irACompromisos={irACompromisos} irAPagos={irAPagos} />;
+    : <MiDia cartera={cartera} pagos={pagos} estadoCargaPagos={estadoCargaPagos} onRetryPagos={onRetryPagos} navigate={navigate} onSync={onSync} abrirDetalle={abrirDetalle} abrirCompromiso={abrirCompromiso} irACompromisos={irACompromisos} irAPagos={irAPagos} />;
 }
 
 // ── Vista Ejecutivo: "Mi día" ────────────────────────────────────────────────────
-function MiDia({ cartera, navigate, onSync, abrirDetalle, abrirCompromiso, irACompromisos, irAPagos }: {
-  cartera: CarteraItem[]; navigate: (s: Screen) => void; onSync: () => void;
-  abrirDetalle: (tipo: DetalleTipo, idCredito: string, solcob?: string | null) => void;
+function MiDia({ cartera, pagos, estadoCargaPagos, onRetryPagos, navigate, onSync, abrirDetalle, abrirCompromiso, irACompromisos, irAPagos }: {
+  cartera: CarteraItem[]; pagos: PagoEnviado[]; estadoCargaPagos: EstadoCargaPagos;
+  onRetryPagos: () => void; navigate: (s: Screen) => void; onSync: () => void;
+  abrirDetalle: (idCredito: string) => void;
   abrirCompromiso: (item: CarteraItem) => void;
   irACompromisos: (situacion: string) => void;
   irAPagos: (estado: string) => void;
@@ -40,26 +42,15 @@ function MiDia({ cartera, navigate, onSync, abrirDetalle, abrirCompromiso, irACo
     { label: "Pagos pendientes de validar",   val: 3,  color: C.amber, bg: C.amberSoft, urgente: false, onClick: () => irACompromisos("SITUACION_PENDIENTE") },
   ];
   const tareasAbajo = [
-    { label: "Pagos enviados rechazados",     val: 2,  color: C.red,   bg: C.redSoft,   urgente: true,  onClick: () => irAPagos("RECHAZADA") },
+    { label: "Pagos enviados rechazados",     val: 2,  color: C.red,   bg: C.redSoft,   urgente: true,  onClick: () => irAPagos("RECHAZADO") },
     { label: "Pagos enviados pendientes",     val: 2,  color: C.amber, bg: C.amberSoft, urgente: false, onClick: () => irAPagos("PENDIENTE") },
-    { label: "Pagos enviados aprobados",      val: 5,  color: C.green, bg: C.greenSoft, urgente: false, onClick: () => irAPagos("APROBADA") },
+    { label: "Pagos enviados aprobados",      val: 5,  color: C.green, bg: C.greenSoft, urgente: false, onClick: () => irAPagos("APROBADO") },
   ];
 
-  // Una vez el pago se envía a autorización a Tanner (Flokzu), se le asigna un
-  // código de solicitud de cobranza fijo: alfanumérico "SOLCOB-" + 5 dígitos.
-  // El ID del crédito y el RUT identifican al cliente, igual que en "Mi cartera".
-  // Los montos y estados coinciden 1:1 con la ficha de cada crédito (COMPROMISOS_DETALLE):
-  // Pamela y Claudia no han pagado nada aún (Pendiente); Rodrigo envió su abono
-  // parcial real de $65.800 (Aprobada, con observaciones); Jorge envió $327.000
-  // pero fue Rechazada, por eso su compromiso volvió a "Pendiente" en la cartera.
   const [hoveredTarea, setHoveredTarea] = useState<string | null>(null);
 
-  const pagosEnviados = [
-    { id: "SOLCOB-84213", idCredito: "3350049", rut: "15.221.775-7", monto: COMPROMISOS_DETALLE["3350049"].montoComprometido, fecha: "09-Julio", status: "PENDIENTE" },
-    { id: "SOLCOB-84214", idCredito: "3287612", rut: "12.344.892-3", monto: ABONO_TRANSFERENCIA_3287612,                      fecha: "09-Julio", status: "APROBADA" },
-    { id: "SOLCOB-84215", idCredito: "2941087", rut: "9.876.543-2",  monto: COMPROMISOS_DETALLE["2941087"].montoComprometido, fecha: "08-Julio", status: "PENDIENTE" },
-    { id: "SOLCOB-84216", idCredito: "3102456", rut: "17.654.321-K", monto: COMPROMISOS_DETALLE["3102456"].montoComprometido, fecha: "08-Julio", status: "RECHAZADA" },
-  ];
+  // En el escritorio solo caben los últimos envíos; el listado completo está en "Mis Pagos".
+  const ultimosPagos = pagos.slice(0, 5);
 
   return (
     <div style={{ padding: "0 24px" }}>
@@ -99,46 +90,63 @@ function MiDia({ cartera, navigate, onSync, abrirDetalle, abrirCompromiso, irACo
       </div>
 
       <Card style={{ overflow: "hidden" }}>
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "620px" }}>
-            <thead>
-              <tr style={{ borderBottom: `1px solid ${C.border}`, background: C.bg }}>
-                {["Fecha pago", "ID del crédito", "Estado", "Monto"].map((h, i) => (
-                  <th key={h} style={{
-                    textAlign: i === 0 ? "left" : "right",
-                    padding: "10px 20px",
-                    fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em",
-                    color: C.muted,
-                  }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {pagosEnviados.map((p, i) => (
-                <tr
-                  key={p.id}
-                  onClick={() => abrirDetalle("pago", p.idCredito, p.id)}
-                  style={{
-                    background: p.status === "RECHAZADA" ? "rgba(190,18,60,0.025)" : "transparent",
-                    borderBottom: i < pagosEnviados.length - 1 ? `1px solid ${C.border}` : "none",
-                    cursor: "pointer",
-                  }}
-                >
-                  <td style={{ padding: "16px 20px", fontSize: "14px", fontWeight: 700, color: C.navy, fontFamily: C.mono }}>{p.fecha}</td>
-                  <td style={{ padding: "16px 20px", textAlign: "right" }}>
-                    <div style={{ fontSize: "14px", fontWeight: 800, color: C.navy, fontFamily: FONT_UI, letterSpacing: "-0.02em" }}>{p.idCredito}</div>
-                    <div style={{ fontSize: "12px", color: C.muted, marginTop: "3px", fontFamily: C.mono }}>{p.id}</div>
-                    <div style={{ fontSize: "12px", color: C.muted, marginTop: "1px", fontFamily: C.mono }}>{p.rut}</div>
-                  </td>
-                  <td style={{ padding: "16px 20px", textAlign: "right" }}>
-                    <Badge s={p.status} width={120} />
-                  </td>
-                  <td style={{ padding: "16px 20px", textAlign: "right", fontSize: "15px", fontWeight: 800, color: C.navy, fontFamily: FONT_UI, letterSpacing: "-0.03em" }}>{clp(p.monto)}</td>
+        {estadoCargaPagos === "cargando" && pagos.length === 0 ? (
+          <div style={{ padding: "28px 20px", textAlign: "center", fontSize: "13px", color: C.muted }}>
+            Cargando pagos enviados...
+          </div>
+        ) : estadoCargaPagos === "error" ? (
+          <div style={{ padding: "28px 20px", display: "grid", justifyItems: "center", gap: "12px", textAlign: "center", fontSize: "13px", color: C.muted }}>
+            <span>No fue posible cargar los pagos enviados.</span>
+            <GhostBtn label="Reintentar" onClick={onRetryPagos} />
+          </div>
+        ) : ultimosPagos.length === 0 ? (
+          <div style={{ padding: "28px 20px", textAlign: "center", fontSize: "13px", color: C.muted }}>
+            No hay pagos enviados.
+          </div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "620px" }}>
+              <thead>
+                <tr style={{ borderBottom: `1px solid ${C.border}`, background: C.bg }}>
+                  {["Fecha pago", "ID del crédito", "Estado", "Monto"].map((h, i) => (
+                    <th key={h} style={{
+                      textAlign: i === 0 ? "left" : "right",
+                      padding: "10px 20px",
+                      fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em",
+                      color: C.muted,
+                    }}>{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {ultimosPagos.map((p, i) => {
+                  const estado = (p.estado ?? "PENDIENTE").toUpperCase();
+                  return (
+                    <tr
+                      key={p.id}
+                      onClick={() => abrirDetalle(String(p.credito_id))}
+                      style={{
+                        background: estado === "RECHAZADO" ? "rgba(190,18,60,0.025)" : "transparent",
+                        borderBottom: i < ultimosPagos.length - 1 ? `1px solid ${C.border}` : "none",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <td style={{ padding: "16px 20px", fontSize: "14px", fontWeight: 700, color: C.navy, fontFamily: C.mono }}>{formatDate(p.fecha_pago ?? null) ?? "—"}</td>
+                      <td style={{ padding: "16px 20px", textAlign: "right" }}>
+                        <div style={{ fontSize: "14px", fontWeight: 800, color: C.navy, fontFamily: FONT_UI, letterSpacing: "-0.02em" }}>{p.credito_id}</div>
+                        <div style={{ fontSize: "12px", color: C.muted, marginTop: "3px", fontFamily: C.mono }}>{p.rut}</div>
+                      </td>
+                      <td style={{ padding: "16px 20px", textAlign: "right" }}>
+                        <Badge s={estado} width={120} />
+                      </td>
+                      <td style={{ padding: "16px 20px", textAlign: "right", fontSize: "15px", fontWeight: 800, color: C.navy, fontFamily: FONT_UI, letterSpacing: "-0.03em" }}>{clp(p.monto_total)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Card>
     </div>
   );

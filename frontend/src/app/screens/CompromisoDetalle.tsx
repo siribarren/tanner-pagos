@@ -2,8 +2,19 @@ import { useEffect, useState } from "react";
 import { Upload, Zap } from "lucide-react";
 import { getCarteraDetalle, type CarteraDetalle } from "../../api/cartera";
 import { C, clp, STATUS } from "../theme";
-import type { DetalleTipo, Screen } from "../types";
+import type { Screen } from "../types";
 import { Badge, Btn, Card } from "../ui";
+
+// Los dos botones de la cabecera cambian de texto según en qué punto del ciclo está el compromiso.
+const ETIQUETA_VALIDAR: Record<string, string> = {
+  SITUACION_PENDIENTE: "Validar pago",
+  SITUACION_ENVIADO: "Pago enviado",
+};
+
+const ETIQUETA_CUADRATURA: Record<string, string> = {
+  SITUACION_PENDIENTE: "Cuadratura pendiente",
+  SITUACION_ENVIADO: "Cuadratura enviada",
+};
 
 function tintFor(statusKey: string) {
   const [color, bg] = STATUS[statusKey] ?? [C.muted, "rgba(107,114,128,0.1)"];
@@ -24,11 +35,9 @@ function statusKey(value?: string | null) {
   return value ? value.toUpperCase() : undefined;
 }
 
-export function CompromisoDetalle({ navigate, tipo = "compromiso", idCredito, solcob }: {
+export function CompromisoDetalle({ navigate, idCredito }: {
   navigate: (s: Screen) => void;
-  tipo?: DetalleTipo;
   idCredito: string;
-  solcob?: string | null;
 }) {
   const [detalle, setDetalle] = useState<CarteraDetalle | null>(null);
   const [loading, setLoading] = useState(true);
@@ -84,23 +93,22 @@ export function CompromisoDetalle({ navigate, tipo = "compromiso", idCredito, so
           <div style={{ marginTop: "6px", fontSize: "13px", color: C.muted, fontFamily: C.mono }}>
             RUT {detalle.credito.rut}
           </div>
-          {tipo === "pago" && solcob && (
-            <div style={{ marginTop: "2px", fontSize: "13px", color: C.muted, fontFamily: C.mono }}>{solcob}</div>
-          )}
         </div>
+        {/* Con el pago ya enviado los dos botones se bloquean: recargar comprobantes volveria a
+            imputar sobre las mismas cuotas, y la cuadratura ya se envio. */}
         <div style={{ display: "flex", gap: "8px" }}>
           <Btn
-            label={situacion === "SITUACION_PENDIENTE" ? "Validar pago" : "Cargar comprobante"}
+            label={ETIQUETA_VALIDAR[situacion ?? ""] ?? "Cargar comprobante"}
             icon={Upload}
             onClick={() => navigate("comprobante")}
-            disabled={situacion === "SITUACION_VALIDADO"}
+            disabled={situacion === "SITUACION_ENVIADO" || situacion === "SITUACION_VALIDADO"}
           />
           <Btn
-            label={situacion === "SITUACION_PENDIENTE" ? "Cuadratura pendiente" : "Ver cuadratura"}
+            label={ETIQUETA_CUADRATURA[situacion ?? ""] ?? "Ver cuadratura"}
             icon={Zap}
             onClick={() => navigate("cuadratura")}
             variant="ghost"
-            disabled={situacion === "SITUACION_PENDIENTE"}
+            disabled={situacion === "SITUACION_PENDIENTE" || situacion === "SITUACION_ENVIADO"}
           />
         </div>
       </div>

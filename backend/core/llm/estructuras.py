@@ -26,4 +26,4 @@ class PagoResponse(BaseModel):
 
 class CantidadTransferenciasResponse(BaseModel):
     cantidad: int
-    evidencia: str = Field(max_length=100)
+    evidencia: str = Field(max_length=255)

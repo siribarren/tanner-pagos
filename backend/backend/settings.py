@@ -71,6 +71,7 @@ SPECTACULAR_SETTINGS = {
           "CRMFilaEstadoEnum": "core.choices.EstadoCRM",
           "CuotaEstadoEnum": "core.choices.CuotaEstado",
           "PagoEnum": "core.choices.TipoPago",
+          "PagoEstadoEnum": "core.choices.PagoEstado",
           "SituacionEnum": "core.choices.Situacion",
       },
 }
@@ -131,7 +132,7 @@ elif AMBIENTE == "postgres":
     }
 else:
     raise ImproperlyConfigured(
-        "AMBIENTE debe estar definido como 'sqlite' o 'postgres' en .env-desarrollo."
+        f"AMBIENTE invalido, {AMBIENTE}."
     )
 
 

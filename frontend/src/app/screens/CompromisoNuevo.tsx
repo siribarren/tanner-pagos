@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 import { C, clp } from "../theme";
 import { getCarteraDetalle, guardarFechaContacto, crearCompromiso, type CarteraDetalle } from "../../api/cartera";
 import type { Screen } from "../types";
-import { Badge, Btn, Card, Chip } from "../ui";
+import { Badge, Btn, Card, Chip, Modal } from "../ui";
 import { DatePicker } from "../DatePicker";
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -159,8 +159,30 @@ export function CompromisoNuevo({ idCredito, navigate, refetchCartera }: {
 
   const ambasFechasListas = Boolean(fechaContacto && fechaCompromiso);
 
-  const toggle = (n: number) => setSel(p => p.includes(n) ? p.filter(x => x !== n) : [...p, n]);
   const cuotas = info?.cuotas ?? [];
+
+  // Las cuotas se comprometen desde la mas antigua y sin saltos (misma regla que valida el
+  // backend), asi que la seleccion es siempre el tramo inicial de la lista: solo se puede marcar
+  // la siguiente cuota pendiente y solo se puede desmarcar la ultima marcada.
+  const avisoOrden = (texto: string) => Swal.fire({
+    toast: true,
+    position: "top-end",
+    icon: "warning",
+    title: texto,
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+  });
+
+  const clickCuota = (i: number) => {
+    if (i === sel.length) return setSel(cuotas.slice(0, i + 1).map(c => c.num));
+    if (i === sel.length - 1) return setSel(cuotas.slice(0, i).map(c => c.num));
+    if (i > sel.length) {
+      return avisoOrden(`Primero selecciona la cuota ${cuotas[sel.length].num}: van de la más antigua a la más nueva.`);
+    }
+    return avisoOrden(`Para quitar esta cuota, desmarca antes la cuota ${cuotas[sel.length - 1].num}.`);
+  };
+
   const totalCuotas = cuotas.filter(c => sel.includes(c.num)).reduce((s, c) => s + c.aPagar, 0);
 
   // El monto manual sigue al total de cuotas seleccionadas por defecto; el
@@ -188,11 +210,11 @@ export function CompromisoNuevo({ idCredito, navigate, refetchCartera }: {
         text: "El compromiso quedó registrado correctamente.",
       });
       navigate("buscar");
-    } catch {
+    } catch (e) {
       await Swal.fire({
         icon: "error",
         title: "No fue posible generar el compromiso",
-        text: "Intenta nuevamente.",
+        text: e instanceof Error ? e.message : "Revisa los datos e inténtalo nuevamente.",
       });
     } finally {
       setCreando(false);
@@ -380,12 +402,13 @@ export function CompromisoNuevo({ idCredito, navigate, refetchCartera }: {
             <div style={{ padding: "20px", color: C.muted, fontSize: "13px" }}>Este crédito no tiene cuotas registradas.</div>
           ) : cuotas.map((c, i) => {
             const active = sel.includes(c.num);
-            const seleccionable = c.estado === "VENCIDA" && ambasFechasListas;
+            // Fuera de turno el boton sigue clickeable: el click es el que dispara el aviso.
+            const enTurno = i === sel.length || i === sel.length - 1;
             return (
               <button
                 key={c.num}
-                onClick={() => seleccionable && toggle(c.num)}
-                disabled={!seleccionable}
+                onClick={() => ambasFechasListas && clickCuota(i)}
+                disabled={!ambasFechasListas}
                 style={{
                   display: "grid",
                   gridTemplateColumns: "32px 1fr auto auto",
@@ -395,8 +418,8 @@ export function CompromisoNuevo({ idCredito, navigate, refetchCartera }: {
                   border: "none",
                   borderBottom: i < cuotas.length - 1 ? `1px solid ${C.border}` : "none",
                   boxShadow: active ? "inset 4px 0 0 " + C.blue : "none",
-                  cursor: seleccionable ? "pointer" : "not-allowed",
-                  opacity: seleccionable ? 1 : 0.55,
+                  cursor: !ambasFechasListas ? "not-allowed" : enTurno ? "pointer" : "default",
+                  opacity: ambasFechasListas && enTurno ? 1 : 0.55,
                   textAlign: "left",
                 }}>
                 {/* Checkbox */}
@@ -474,26 +497,16 @@ export function CompromisoNuevo({ idCredito, navigate, refetchCartera }: {
       </div>
 
       {modal === "confirmar" && fechaCompromiso && (
-        <div style={{
-          position: "fixed", inset: 0, zIndex: 80,
-          background: "rgba(8, 15, 31, 0.48)", backdropFilter: "blur(10px)",
-          display: "flex", alignItems: "center", justifyContent: "center", padding: "20px",
-        }}>
-          <div style={{
-            width: "100%", maxWidth: "440px", borderRadius: "20px", background: "#fff",
-            border: `1px solid ${C.border}`, boxShadow: "0 28px 72px rgba(0,30,61,0.25)",
-            padding: "28px 26px",
-          }}>
-            <div style={{ fontSize: "18px", fontWeight: 800, color: C.navy, marginBottom: "10px" }}>Confirmar compromiso</div>
-            <p style={{ margin: "0 0 22px", fontSize: "13px", color: C.muted, lineHeight: 1.5 }}>
-              Vas a crear un compromiso de pago por {clp(montoManual)} para el {formatoFechaLarga(fechaCompromiso)}, vía {canal.toLowerCase()}.
-            </p>
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
-              <Btn label="Cancelar" variant="outline" onClick={() => setModal("cerrado")} disabled={creando} />
-              <Btn label={creando ? "Creando..." : "Confirmar"} onClick={generar} disabled={creando} />
-            </div>
+        <Modal>
+          <div style={{ fontSize: "18px", fontWeight: 800, color: C.navy, marginBottom: "10px" }}>Confirmar compromiso</div>
+          <p style={{ margin: "0 0 22px", fontSize: "13px", color: C.muted, lineHeight: 1.5 }}>
+            Vas a crear un compromiso de pago por {clp(montoManual)} para el {formatoFechaLarga(fechaCompromiso)}, vía {canal.toLowerCase()}.
+          </p>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+            <Btn label="Cancelar" variant="outline" onClick={() => setModal("cerrado")} disabled={creando} />
+            <Btn label={creando ? "Creando..." : "Confirmar"} onClick={generar} disabled={creando} />
           </div>
-        </div>
+        </Modal>
       )}
     </>
   );

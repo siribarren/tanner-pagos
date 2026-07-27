@@ -36,6 +36,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/cartera/{id}/comprobante/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Entrega el PDF con los comprobantes, para revisarlo antes de enviar la solicitud a Flokzu. */
+        get: operations["cartera_comprobante_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/cartera/{id}/compromiso/": {
         parameters: {
             query?: never;
@@ -77,7 +94,59 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** @description Persiste el pago que el ejecutivo reviso y confirmo, a la espera de que el mandante lo apruebe. */
         post: operations["cartera_pago_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cartera/{id}/pago/analizar/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Procesa los comprobantes y devuelve la cuadratura propuesta. No escribe nada en la base. */
+        post: operations["cartera_pago_analizar_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/pagos/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Los pagos ya enviados al mandante, del mas reciente al mas antiguo. */
+        get: operations["pagos_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/pagos/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Los pagos ya enviados al mandante, del mas reciente al mas antiguo. */
+        get: operations["pagos_retrieve"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -116,6 +185,7 @@ export interface components {
             estado?: (components["schemas"]["CRMFilaEstadoEnum"] | components["schemas"]["NullEnum"]) | null;
             pago?: (components["schemas"]["PagoEnum"] | components["schemas"]["NullEnum"]) | null;
             situacion?: (components["schemas"]["SituacionEnum"] | components["schemas"]["NullEnum"]) | null;
+            /** Format: int64 */
             monto?: number | null;
         };
         /**
@@ -170,11 +240,26 @@ export interface components {
             rut: string;
             cliente: string;
         };
+        Cuadratura: {
+            estado: string;
+            checks: components["schemas"]["CuadraturaCheck"][];
+            saldo_a_favor: number;
+            resumen: string;
+            control: string[][];
+        };
+        CuadraturaCheck: {
+            n: number;
+            titulo: string;
+            resultado: string;
+            tono: components["schemas"]["TonoEnum"];
+            campos: string[][];
+        };
         Cuota: {
             readonly id: number;
             estado: components["schemas"]["CuotaEstadoEnum"];
             /** Format: date */
             fecha: string;
+            /** Format: int64 */
             monto: number;
             crm_fila_id?: number | null;
         };
@@ -184,31 +269,78 @@ export interface components {
          * @enum {string}
          */
         CuotaEstadoEnum: "vencida" | "vigente";
+        ImputacionPropuesta: {
+            cuota_id: number;
+            /** Format: date */
+            cuota_fecha: string;
+            cuota_monto: number;
+            monto_imputado: number;
+            saldo: number;
+        };
         /** @enum {unknown} */
         NullEnum: null;
         Pago: {
             readonly id: number;
             pdf_path: string;
+            /** Format: int64 */
             monto_total: number;
             readonly monto_comprometido: number;
             /** Format: date */
             fecha_pago?: string | null;
             cuenta_destino?: string | null;
             cuentas_distintas?: boolean;
+            /** Format: int64 */
             cantidad_transferencias?: number;
+            estado?: components["schemas"]["PagoEstadoEnum"];
+            tipo_pago?: (components["schemas"]["TipoPagoEnum"] | components["schemas"]["NullEnum"]) | null;
+            /** Format: int64 */
+            monto_ceco?: number;
+            /** Format: int64 */
+            monto_saf?: number;
             /** Format: date-time */
             readonly creado_en: string;
             readonly transferencias: components["schemas"]["PagoTransferencia"][];
             readonly imputaciones: components["schemas"]["PagoCuota"][];
         };
+        PagoAnalisis: {
+            pdf_path: string;
+            monto_total: number;
+            monto_comprometido: number;
+            /** Format: date */
+            fecha_pago: string | null;
+            cuenta_destino: string | null;
+            cuentas_distintas: boolean;
+            cantidad_transferencias: number;
+            transferencias: components["schemas"]["TransferenciaAnalisis"][];
+            imputaciones: components["schemas"]["ImputacionPropuesta"][];
+            cuadratura: components["schemas"]["Cuadratura"];
+            flokzu: components["schemas"]["SolicitudFlokzu"];
+            opciones_cuenta: string[];
+        };
         PagoCarga: {
             imagenes: string[];
+        };
+        /** @description Lo que el ejecutivo confirmo en el modal de Flokzu. Es lo unico que se persiste. */
+        PagoConfirmar: {
+            pdf_path: string;
+            /** Format: date */
+            fecha_pago: string;
+            cuenta_destino?: string | null;
+            /** @default false */
+            cuentas_distintas: boolean;
+            transferencias: components["schemas"]["TransferenciaAnalisis"][];
+            tipo_pago: components["schemas"]["TipoPagoEnum"];
+            /** @default 0 */
+            monto_ceco: number;
+            /** @default 0 */
+            monto_saf: number;
         };
         PagoCuota: {
             cuota_id: number;
             /** Format: date */
             readonly cuota_fecha: string;
             readonly cuota_monto: number;
+            /** Format: int64 */
             monto_imputado: number;
         };
         /**
@@ -217,9 +349,30 @@ export interface components {
          * @enum {string}
          */
         PagoEnum: "total" | "parcial";
+        /** @description Fila de "Mis pagos enviados": el pago con los datos del credito al que pertenece. */
+        PagoEnviado: {
+            readonly id: number;
+            credito_id: number;
+            rut: string;
+            cliente: string;
+            /** Format: date */
+            fecha_pago?: string | null;
+            /** Format: int64 */
+            monto_total: number;
+            estado?: components["schemas"]["PagoEstadoEnum"];
+        };
+        /**
+         * @description * `pendiente` - Pendiente
+         *     * `aprobado` - Aprobado
+         *     * `rechazado` - Rechazado
+         * @enum {string}
+         */
+        PagoEstadoEnum: "pendiente" | "aprobado" | "rechazado";
         PagoTransferencia: {
             readonly id: number;
+            /** Format: int64 */
             orden: number;
+            /** Format: int64 */
             monto: number;
             /** Format: date */
             fecha?: string | null;
@@ -229,10 +382,52 @@ export interface components {
         };
         /**
          * @description * `pendiente` - Pendiente
+         *     * `enviado` - Enviado al mandante
          *     * `validado` - Validado
          * @enum {string}
          */
-        SituacionEnum: "pendiente" | "validado";
+        SituacionEnum: "pendiente" | "enviado" | "validado";
+        SolicitudFlokzu: {
+            tipo_solicitud: string;
+            empresa: string;
+            empresa_cobranza: string;
+            correo_cobranza: string;
+            correos_adicionales: string;
+            id_credito: number;
+            forma_pago: string;
+            rut_transfiere: string;
+            monto_pago: number;
+            cuenta: string | null;
+            /** Format: date */
+            fecha_pago: string | null;
+            cantidad_movimientos: number;
+            tipo_pago: components["schemas"]["TipoPagoEnum"];
+            considera_otros_id: boolean;
+            adjunto: string;
+            monto_ceco: number;
+            monto_saf: number;
+        };
+        /**
+         * @description * `pago_total` - Pago total
+         *     * `put_cuotas` - PUT en cuotas
+         * @enum {string}
+         */
+        TipoPagoEnum: "pago_total" | "put_cuotas";
+        /**
+         * @description * `ok` - ok
+         *     * `observado` - observado
+         * @enum {string}
+         */
+        TonoEnum: "ok" | "observado";
+        TransferenciaAnalisis: {
+            orden: number;
+            monto: number;
+            /** Format: date */
+            fecha?: string | null;
+            cuenta_destino?: string | null;
+            banco?: string | null;
+            n_operacion?: string | null;
+        };
     };
     responses: never;
     parameters: never;
@@ -279,6 +474,31 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CarteraDetail"];
+                };
+            };
+        };
+    };
+    cartera_comprobante_retrieve: {
+        parameters: {
+            query?: {
+                /** @description pdf_path que devolvio el analisis. */
+                archivo?: string;
+            };
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this credito. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
                 };
             };
         };
@@ -351,7 +571,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["PagoCarga"];
+                "application/json": components["schemas"]["PagoConfirmar"];
+                "application/x-www-form-urlencoded": components["schemas"]["PagoConfirmar"];
+                "multipart/form-data": components["schemas"]["PagoConfirmar"];
             };
         };
         responses: {
@@ -361,6 +583,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Pago"];
+                };
+            };
+        };
+    };
+    cartera_pago_analizar_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this credito. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["PagoCarga"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagoAnalisis"];
+                };
+            };
+        };
+    };
+    pagos_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagoEnviado"][];
+                };
+            };
+        };
+    };
+    pagos_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this pago. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagoEnviado"];
                 };
             };
         };

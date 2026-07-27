@@ -42,6 +42,7 @@ export const STATUS: Record<string, [string, string, string]> = {
   // Situación: solo aplica a compromisos vigentes (estado Comprometido) que ya
   // tienen un pago para validar contra Mónaco.
   SITUACION_PENDIENTE:    [C.amber, C.amberSoft, "Pago pendiente de validar"],
+  SITUACION_ENVIADO:      [C.blue,  C.blueSoft,  "Enviado al mandante"],
   SITUACION_VALIDADO:     [C.green, C.greenSoft, "Pago validado"],
   SITUACION_OBSERVADO:    [C.cyan,  C.cyanSoft,  "Pago validado con observaciones"],
   SITUACION_RECHAZADO:    [C.red,   C.redSoft,   "Pago rechazado"],

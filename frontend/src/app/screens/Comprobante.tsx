@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, ArrowLeft, CheckCircle2, Download, FileText, Upload, X, Zap } from "lucide-react";
 import { C, clp } from "../theme";
 import { getCarteraDetalle } from "../../api/cartera";
-import { cargarComprobantes, MAX_COMPROBANTES, TIPOS_COMPROBANTE, type Pago } from "../../api/pagos";
+import { analizarComprobantes, MAX_COMPROBANTES, TIPOS_COMPROBANTE, type PagoAnalisis } from "../../api/pagos";
 import type { Screen } from "../types";
 import { Btn, Card } from "../ui";
 import { ProgressModal, type ProgressStep } from "../ProgressModal";
@@ -39,10 +39,10 @@ const PASOS_EVALUAR_COMPLETO: ProgressStep[] = [
   },
   {
     key: "obtener",
-    title: "Registrando el pago",
-    runningText: "Guardando el pago y el detalle de cada transferencia.",
-    successText: "Pago registrado con éxito.",
-    errorText: "Error al registrar el pago.",
+    title: "Revisando el compromiso",
+    runningText: "Comparando lo transferido contra el monto y la fecha comprometidos.",
+    successText: "Compromiso revisado con éxito.",
+    errorText: "Error al revisar el compromiso.",
   },
   {
     key: "cuadrar",
@@ -119,10 +119,14 @@ function Fila({ columnas, ultima, children }: { columnas: string; ultima: boolea
   );
 }
 
-export function Comprobante({ navigate, idCredito }: { navigate: (s: Screen) => void; idCredito: string }) {
+export function Comprobante({ navigate, idCredito, onAnalisis }: {
+  navigate: (s: Screen) => void;
+  idCredito: string;
+  onAnalisis: (analisis: PagoAnalisis | null) => void;
+}) {
   const [rut, setRut] = useState("—");
   const [archivos, setArchivos] = useState<File[]>([]);
-  const [pago, setPago] = useState<Pago | null>(null);
+  const [analisis, setAnalisis] = useState<PagoAnalisis | null>(null);
   const [montoPresencial, setMontoPresencial] = useState<number>(0);
   const [fechaPresencial, setFechaPresencial] = useState("");
   const [horaPresencial, setHoraPresencial] = useState("");
@@ -159,12 +163,18 @@ export function Comprobante({ navigate, idCredito }: { navigate: (s: Screen) => 
   // sin OCR ni análisis IA, y con un tiempo de proceso menor.
   const soloPresencial = archivos.length === 0 && montoPresencial > 0 && fechaPresencial !== "";
   const habilitado = archivos.length > 0 || (montoPresencial > 0 && fechaPresencial !== "");
-  const diferencia = pago ? pago.monto_total - pago.monto_comprometido : 0;
-  const hayObservacion = pago !== null && (pago.cuentas_distintas || diferencia !== 0);
-  const hayResultado = estado === "listo" && (soloPresencial || pago !== null);
+  const diferencia = analisis ? analisis.monto_total - analisis.monto_comprometido : 0;
+  const hayObservacion = analisis !== null && (analisis.cuentas_distintas || diferencia !== 0);
+  const hayResultado = estado === "listo" && (soloPresencial || analisis !== null);
+
+  // El análisis vive en App para que Cuadratura lo lea: es lo que esa pantalla revisa antes de guardar.
+  const guardarAnalisis = (nuevo: PagoAnalisis | null) => {
+    setAnalisis(nuevo);
+    onAnalisis(nuevo);
+  };
 
   const evaluar = () => {
-    setPago(null);
+    guardarAnalisis(null);
     setEstado("progreso");
     setRunId((r) => r + 1);
   };
@@ -304,7 +314,7 @@ export function Comprobante({ navigate, idCredito }: { navigate: (s: Screen) => 
 
         {hayResultado && (
           <Card style={{ padding: "18px 20px", marginBottom: "20px", borderLeft: `4px solid ${hayObservacion ? C.amber : C.green}` }}>
-            {!pago ? (
+            {!analisis ? (
               <>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                   <CheckCircle2 size={20} color={C.green} />
@@ -335,18 +345,18 @@ export function Comprobante({ navigate, idCredito }: { navigate: (s: Screen) => 
                       {hayObservacion ? "Comprobantes analizados · observación detectada" : "Comprobantes analizados · cuadratura realizada"}
                     </div>
                     <div style={{ fontSize: "12px", color: C.muted }}>
-                      {pago.transferencias.length} transferencia{pago.transferencias.length > 1 ? "s" : ""} en {archivos.length} imagen{archivos.length > 1 ? "es" : ""} · {pago.pdf_path}
+                      {analisis.transferencias.length} transferencia{analisis.transferencias.length > 1 ? "s" : ""} en {archivos.length} imagen{archivos.length > 1 ? "es" : ""} · {analisis.pdf_path}
                     </div>
                   </div>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "12px", marginTop: "14px" }}>
                   {[
-                    { label: "Monto transferido", val: clp(pago.monto_total) },
-                    { label: "Comprometido",      val: clp(pago.monto_comprometido) },
+                    { label: "Monto transferido", val: clp(analisis.monto_total) },
+                    { label: "Comprometido",      val: clp(analisis.monto_comprometido) },
                     { label: "Diferencia",        val: clp(diferencia) },
-                    { label: "Fecha pago",        val: formatFecha(pago.fecha_pago) },
-                    { label: "Cuenta destino",    val: pago.cuenta_destino ?? "—" },
-                    { label: "Transferencias",    val: String(pago.transferencias.length) },
+                    { label: "Fecha pago",        val: formatFecha(analisis.fecha_pago) },
+                    { label: "Cuenta destino",    val: analisis.cuenta_destino ?? "—" },
+                    { label: "Transferencias",    val: String(analisis.transferencias.length) },
                   ].map(({ label, val }) => (
                     <div key={label} style={{ padding: "10px 12px", borderRadius: "10px", background: C.bg, border: `1px solid ${C.border}` }}>
                       <div style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: C.muted }}>{label}</div>
@@ -356,8 +366,8 @@ export function Comprobante({ navigate, idCredito }: { navigate: (s: Screen) => 
                 </div>
 
                 <Detalle titulo="Transferencias detectadas">
-                  {pago.transferencias.map((transferencia, i) => (
-                    <Fila key={transferencia.id} columnas="52px 1fr 1fr 1fr 1fr" ultima={i === pago.transferencias.length - 1}>
+                  {analisis.transferencias.map((transferencia, i) => (
+                    <Fila key={transferencia.orden} columnas="52px 1fr 1fr 1fr 1fr" ultima={i === analisis.transferencias.length - 1}>
                       <span style={{ color: C.muted }}>#{transferencia.orden}</span>
                       <span style={{ fontWeight: 800 }}>{clp(transferencia.monto)}</span>
                       <span>{formatFecha(transferencia.fecha)}</span>
@@ -368,8 +378,8 @@ export function Comprobante({ navigate, idCredito }: { navigate: (s: Screen) => 
                 </Detalle>
 
                 <Detalle titulo="Imputación a cuotas comprometidas">
-                  {pago.imputaciones.map((imputacion, i) => (
-                    <Fila key={imputacion.cuota_id} columnas="1fr 1fr 1fr" ultima={i === pago.imputaciones.length - 1}>
+                  {analisis.imputaciones.map((imputacion, i) => (
+                    <Fila key={imputacion.cuota_id} columnas="1fr 1fr 1fr" ultima={i === analisis.imputaciones.length - 1}>
                       <span>Cuota {formatFecha(imputacion.cuota_fecha)}</span>
                       <span style={{ color: C.muted }}>{clp(imputacion.cuota_monto)}</span>
                       <span style={{ fontWeight: 800 }}>{clp(imputacion.monto_imputado)}</span>
@@ -385,7 +395,7 @@ export function Comprobante({ navigate, idCredito }: { navigate: (s: Screen) => 
                   }}>
                     <AlertTriangle size={14} color={C.amber} style={{ flexShrink: 0, marginTop: "1px" }} />
                     <span style={{ fontSize: "12px", fontWeight: 700, color: "#7a4a00", lineHeight: 1.45 }}>
-                      {pago.cuentas_distintas
+                      {analisis.cuentas_distintas
                         ? "Observación: los comprobantes apuntan a cuentas destino distintas entre sí. Se debe revisar la cuadratura."
                         : `Observación: el monto transferido no coincide con el compromiso (diferencia de ${clp(diferencia)}). Se debe revisar la cuadratura.`}
                     </span>
@@ -422,7 +432,7 @@ export function Comprobante({ navigate, idCredito }: { navigate: (s: Screen) => 
         steps={soloPresencial ? PASOS_EVALUAR_PRESENCIAL : PASOS_EVALUAR_COMPLETO}
         totalSeconds={soloPresencial ? 6 : 15}
         resumen={soloPresencial ? RESUMEN_PRESENCIAL : RESUMEN_COMPLETO}
-        task={soloPresencial ? undefined : () => cargarComprobantes(idCredito, archivos).then(setPago)}
+        task={soloPresencial ? undefined : () => analizarComprobantes(idCredito, archivos).then(guardarAnalisis)}
         onClose={() => setEstado("listo")}
         onRetry={reintentar}
       />

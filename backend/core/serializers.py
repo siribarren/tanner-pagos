@@ -4,9 +4,9 @@ from pathlib import Path
 from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field
 
-from .choices import CanalContacto, CuotaEstado, EstadoCRM, Situacion, TipoPago
+from .choices import CanalContacto, EstadoCRM, Situacion, TipoPago, TipoPagoFlokzu
 from .models import CRMFila, Credito, Cuota, Pago, PagoCuota, PagoTransferencia
-from .pdf_service import EXTENSIONES_COMPROBANTE
+from .pdf_service import EXTENSIONES_COMPROBANTE, PdfService
 
 
 class CRMFilaSerializer(serializers.ModelSerializer):
@@ -47,13 +47,13 @@ class CompromisoCreateSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         credito = self.context["credito"]
-        vencidas = set(
-            Cuota.objects.filter(credito_id=credito, estado=CuotaEstado.VENCIDA).values_list("id", flat=True)
-        )
+        # Se puede comprometer cualquier cuota, vencida o vigente, pero siempre partiendo de la mas
+        # antigua: la seleccion tiene que ser el tramo inicial de las cuotas del credito, sin saltos.
+        cuotas = list(Cuota.objects.filter(credito_id=credito).order_by("fecha", "id").values_list("id", flat=True))
         seleccionadas = set(attrs["cuota_ids"])
-        if not seleccionadas.issubset(vencidas):
+        if seleccionadas != set(cuotas[:len(seleccionadas)]):
             raise serializers.ValidationError(
-                {"cuota_ids": "Todas las cuotas deben pertenecer al crédito y estar vencidas."}
+                {"cuota_ids": "Las cuotas deben pertenecer al crédito y seleccionarse desde la más antigua, sin saltarse ninguna."}
             )
 
         ultima = CRMFila.objects.para_credito(credito).first()
@@ -62,7 +62,7 @@ class CompromisoCreateSerializer(serializers.Serializer):
                 {"fecha_contacto": "Debe registrar la fecha de contacto antes de crear el compromiso."}
             )
 
-        attrs["_vencidas_ids"] = vencidas
+        attrs["_todas_ids"] = set(cuotas)
         return attrs
 
 
@@ -222,7 +222,114 @@ class PagoSerializer(serializers.ModelSerializer):
             "cuenta_destino",
             "cuentas_distintas",
             "cantidad_transferencias",
+            "estado",
+            "tipo_pago",
+            "monto_ceco",
+            "monto_saf",
             "creado_en",
             "transferencias",
             "imputaciones",
         )
+
+
+class PagoEnviadoSerializer(serializers.ModelSerializer):
+    """Fila de "Mis pagos enviados": el pago con los datos del credito al que pertenece."""
+
+    credito_id = serializers.IntegerField(source="crm_fila_id.credito_id_id")
+    rut = serializers.CharField(source="crm_fila_id.credito_id.rut_deudor")
+    cliente = serializers.CharField(source="crm_fila_id.credito_id.nombre_deudor")
+
+    class Meta:
+        model = Pago
+        fields = ("id", "credito_id", "rut", "cliente", "fecha_pago", "monto_total", "estado")
+
+
+# ── Analisis de comprobantes: la propuesta que se muestra en cuadratura, antes de persistir nada ──
+
+class TransferenciaAnalisisSerializer(serializers.Serializer):
+    orden = serializers.IntegerField()
+    monto = serializers.IntegerField()
+    fecha = serializers.DateField(allow_null=True, required=False, default=None)
+    cuenta_destino = serializers.CharField(allow_null=True, required=False, default=None)
+    banco = serializers.CharField(allow_null=True, required=False, default=None)
+    n_operacion = serializers.CharField(allow_null=True, required=False, default=None)
+
+
+class ImputacionPropuestaSerializer(serializers.Serializer):
+    cuota_id = serializers.IntegerField()
+    cuota_fecha = serializers.DateField()
+    cuota_monto = serializers.IntegerField()
+    monto_imputado = serializers.IntegerField()
+    saldo = serializers.IntegerField()
+
+
+class CuadraturaCheckSerializer(serializers.Serializer):
+    n = serializers.IntegerField()
+    titulo = serializers.CharField()
+    resultado = serializers.CharField()
+    tono = serializers.ChoiceField(choices=["ok", "observado"])
+    # Pares [etiqueta, valor] ya formateados para mostrar bajo el resultado.
+    campos = serializers.ListField(child=serializers.ListField(child=serializers.CharField()))
+
+
+class CuadraturaSerializer(serializers.Serializer):
+    estado = serializers.CharField()
+    checks = CuadraturaCheckSerializer(many=True)
+    saldo_a_favor = serializers.IntegerField()
+    resumen = serializers.CharField()
+    control = serializers.ListField(child=serializers.ListField(child=serializers.CharField()))
+
+
+class SolicitudFlokzuSerializer(serializers.Serializer):
+    tipo_solicitud = serializers.CharField()
+    empresa = serializers.CharField()
+    empresa_cobranza = serializers.CharField()
+    correo_cobranza = serializers.CharField()
+    correos_adicionales = serializers.CharField()
+    id_credito = serializers.IntegerField()
+    forma_pago = serializers.CharField()
+    rut_transfiere = serializers.CharField()
+    monto_pago = serializers.IntegerField()
+    cuenta = serializers.CharField(allow_null=True)
+    fecha_pago = serializers.DateField(allow_null=True)
+    cantidad_movimientos = serializers.IntegerField()
+    tipo_pago = serializers.ChoiceField(choices=TipoPagoFlokzu.choices)
+    considera_otros_id = serializers.BooleanField()
+    adjunto = serializers.CharField()
+    monto_ceco = serializers.IntegerField()
+    monto_saf = serializers.IntegerField()
+
+
+class PagoAnalisisSerializer(serializers.Serializer):
+    pdf_path = serializers.CharField()
+    monto_total = serializers.IntegerField()
+    monto_comprometido = serializers.IntegerField()
+    fecha_pago = serializers.DateField(allow_null=True)
+    cuenta_destino = serializers.CharField(allow_null=True)
+    cuentas_distintas = serializers.BooleanField()
+    cantidad_transferencias = serializers.IntegerField()
+    transferencias = TransferenciaAnalisisSerializer(many=True)
+    imputaciones = ImputacionPropuestaSerializer(many=True)
+    cuadratura = CuadraturaSerializer()
+    flokzu = SolicitudFlokzuSerializer()
+    opciones_cuenta = serializers.ListField(child=serializers.CharField())
+
+
+class PagoConfirmarSerializer(serializers.Serializer):
+    """Lo que el ejecutivo confirmo en el modal de Flokzu. Es lo unico que se persiste."""
+
+    pdf_path = serializers.CharField()
+    fecha_pago = serializers.DateField()
+    cuenta_destino = serializers.CharField(allow_null=True, required=False, allow_blank=True)
+    cuentas_distintas = serializers.BooleanField(default=False)
+    transferencias = TransferenciaAnalisisSerializer(many=True, allow_empty=False)
+    tipo_pago = serializers.ChoiceField(choices=TipoPagoFlokzu.choices)
+    monto_ceco = serializers.IntegerField(min_value=0, default=0)
+    monto_saf = serializers.IntegerField(min_value=0, default=0)
+
+    def validate_pdf_path(self, value):
+        try:
+            PdfService.ruta_absoluta(value, self.context["credito"].id)
+        except ValueError as e:
+            raise serializers.ValidationError(str(e))
+        return value

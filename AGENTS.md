@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
 ## What this repo is
 
@@ -169,35 +169,6 @@ Env vars load from `backend/.env-desarrollo` via `load_dotenv()` at the top of
   `core/llm/openai_pago.py` (`OpenAiPagoService`, OpenAI structured-output extraction). Page-limit
   errors from DocumentAI are raised as `ValueError`, not silently handled — there is deliberately
   **no OCR fallback** for that case.
-- **Every `*_service.py` is a class, never module-level functions** — this applies to internal
-  services too, not just external-API wrappers (`PagoService`, `PdfService`, `EmailService`).
-  Collaborators are built in `__init__` and kept on `self`; never instantiate a service inline in
-  the middle of a method body:
-
-  ```python
-  class PagoService:
-      def __init__(self):
-          self.pdf_service = PdfService()
-          self.docai_service = DocumentAIService()   # NO: DocumentAIService().procesar(...) inline
-
-      def analizar_comprobantes(self, ...):
-          texto = self.docai_service.procesar(...)
-  ```
-
-  Callers instantiate at the point of use (`PagoService().analizar_comprobantes(...)` in the view),
-  consistent with the "no DI container" rule above.
-- **`self` only when the method needs it**: a method that touches no state and calls no sibling
-  method is a `@staticmethod`. A method that calls siblings keeps `self` and calls them as
-  `self._otro(...)` — **never** qualify by class name (`DocumentAIService._otro(...)`), which is
-  what makes a wall of `@staticmethod`s unreadable. If two private helpers only exist to call each
-  other, prefer merging them over introducing that qualified call.
-- **Leading underscore marks what only the class itself uses.** Methods consumed by another class
-  or by the tests stay public: `PdfService.ruta_relativa` is a `@staticmethod` without underscore
-  because `PagoService` calls it, while `DocumentAIService._leer_linea` is private.
-- **Module-level constants, not instance attributes**, for paths, thresholds and file extensions
-  (`DIRECTORIO_PDFS`, `EXTENSIONES_COMPROBANTE`, `SOLAPE_MINIMO_FILA`, `BINS_X`). Other modules
-  import them (`core/serializers.py` imports `EXTENSIONES_COMPROBANTE`) and tests patch them
-  (`patch("core.pdf_service.DIRECTORIO_PDFS", ...)`).
 - **DRF layer**: `core/views.py` (ViewSets) + `core/serializers.py` + `core/urls.py`
   (`DefaultRouter`, included from `backend/urls.py` under `/api/`). Schema/docs are auto-generated
   by drf-spectacular at `/api/schema`, `/api/docs`, `/api/redoc`. Only `CarteraViewSet` exists so

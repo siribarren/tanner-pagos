@@ -45,6 +45,21 @@ class PdfService:
         return pdf_path.relative_to(settings.BASE_DIR).as_posix()
 
     @staticmethod
+    def ruta_absoluta(pdf_path: str, credito_id: int) -> Path:
+        """Resuelve una ruta que llego desde el cliente.
+
+        Sin esto cualquiera pide un archivo arbitrario del servidor, o el comprobante de otro deudor:
+        el archivo tiene que estar en el directorio de comprobantes y llevar el prefijo del credito
+        que le pone generar_pdf_desde_comprobantes.
+        """
+        ruta = (Path(settings.BASE_DIR) / pdf_path).resolve()
+        if ruta.parent != DIRECTORIO_PDFS.resolve() or not ruta.is_file():
+            raise ValueError("El comprobante indicado no existe.")
+        if not ruta.name.startswith(f"{credito_id}_"):
+            raise ValueError("El comprobante indicado es de otro credito.")
+        return ruta
+
+    @staticmethod
     def _es_pdf(archivo) -> bool:
         return Path(getattr(archivo, "name", "")).suffix.lower() == EXTENSION_PDF
 

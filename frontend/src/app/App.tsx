@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { Shell } from "./Shell";
 import type { CarteraItem } from "../api/cartera";
 import { getCartera } from "../api/cartera";
+import { getPagosEnviados, type PagoAnalisis, type PagoEnviado } from "../api/pagos";
 import { ProgressModal, type ProgressStep } from "./ProgressModal";
-import type { DetalleTipo, Rol, Screen } from "./types";
+import type { EstadoCargaPagos, Rol, Screen } from "./types";
 import { Login } from "./screens/Login";
 import { Panel } from "./screens/Panel";
 import { Buscar, type SituacionFiltro } from "./screens/Buscar";
@@ -77,17 +78,21 @@ export default function App() {
   const [syncOpen, setSyncOpen] = useState(false);
   const [syncRunId, setSyncRunId] = useState(0);
   const [historialSincronizaciones, setHistorialSincronizaciones] = useState<SincronizacionEvento[]>([]);
-  const [detalleTipo, setDetalleTipo] = useState<DetalleTipo>("compromiso");
   const [detalleIdCredito, setDetalleIdCredito] = useState("3350049");
-  const [detalleSolcob, setDetalleSolcob] = useState<string | null>(null);
 
   // Filtros iniciales de Compromisos/Pagos al llegar desde las cards de "Mi
-  // Escritorio" (p. ej. "Pagos rechazados" → Pagos filtrado por Rechazada). Se
+  // Escritorio" (p. ej. "Pagos rechazados" → Pagos filtrado por Rechazado). Se
   // resetean a "todos" en cualquier otra navegación para que no queden pegados.
   const [compromisoFiltroInicial, setCompromisoFiltroInicial] = useState("todos");
   const [pagoFiltroInicial, setPagoFiltroInicial] = useState("todos");
 
   const [carteraBase, setCarteraBase] = useState<CarteraItem[]>([]);
+  const [pagosEnviados, setPagosEnviados] = useState<PagoEnviado[]>([]);
+  const [estadoCargaPagos, setEstadoCargaPagos] = useState<EstadoCargaPagos>("cargando");
+
+  // Análisis de los comprobantes recién cargados: lo produce Comprobante y lo consume Cuadratura,
+  // que trabaja sobre él hasta que el ejecutivo confirma el envío (ahí recién se guarda en la BD).
+  const [analisisPago, setAnalisisPago] = useState<PagoAnalisis | null>(null);
 
   const refetchCartera = () => {
     getCartera()
@@ -95,9 +100,31 @@ export default function App() {
       .catch((error) => console.error(error));
   };
 
+  const refetchPagos = () => {
+    setEstadoCargaPagos("cargando");
+    return getPagosEnviados()
+      .then((pagos) => {
+        setPagosEnviados(pagos);
+        setEstadoCargaPagos("listo");
+      })
+      .catch((error) => {
+        console.error(error);
+        setEstadoCargaPagos("error");
+      });
+  };
+
   useEffect(() => {
-    if (loggedIn) refetchCartera();
+    if (!loggedIn) return;
+    refetchCartera();
+    refetchPagos();
   }, [loggedIn]);
+
+  // Enviar un pago cambia las dos cosas: aparece en la lista de pagos y el crédito pasa a
+  // "Enviado al mandante" en la cartera.
+  const alEnviarPago = () => {
+    refetchCartera();
+    refetchPagos();
+  };
 
   const cartera = carteraBase;
 
@@ -120,22 +147,18 @@ export default function App() {
     setScreen("pagos");
   };
 
-  // La ficha de detalle (screen "compromiso") es compartida por Compromisos y
-  // Pagos: quien navega hacia ella indica de cuál de las dos se trata, y de qué
-  // ID de crédito, para que la ficha muestre los datos de ESE compromiso.
-  const abrirDetalle = (tipo: DetalleTipo, idCredito: string, solcob: string | null = null) => {
-    setDetalleTipo(tipo);
+  // Compromisos y pagos enviados abren la misma ficha real por ID de crédito.
+  const abrirDetalle = (idCredito: string) => {
     setDetalleIdCredito(idCredito);
-    setDetalleSolcob(solcob);
     setScreen("compromiso");
   };
 
   // Click en una fila de la cartera (Panel o Compromisos): si ya está Comprometido
   // muestra la ficha rica; si está Sin compromiso o Pendiente, lleva a crearlo,
   // pasando igual el ID de crédito para que esa pantalla muestre al cliente correcto.
-  const abrirCompromiso = (item: { id: string; estado: string }) => {
+  const abrirCompromiso = (item: CarteraItem) => {
     if (item.estado === "COMPROMETIDO") {
-      abrirDetalle("compromiso", item.id);
+      abrirDetalle(item.id);
     } else {
       setDetalleIdCredito(item.id);
       setScreen("compromiso_nuevo");
@@ -171,14 +194,14 @@ export default function App() {
   return (
     <>
       <Shell screen={screen} rol={rol} navigate={navigate} onChangeRol={changeRol} onLogout={() => { localStorage.removeItem("accessToken"); localStorage.removeItem("refreshToken"); setLoggedIn(false); }}>
-        {screen === "panel"            && <Panel            rol={rol} cartera={cartera} navigate={navigate} onSync={startSync} abrirDetalle={abrirDetalle} abrirCompromiso={abrirCompromiso} irACompromisos={irACompromisos} irAPagos={irAPagos} />}
+        {screen === "panel"            && <Panel            rol={rol} cartera={cartera} pagos={pagosEnviados} estadoCargaPagos={estadoCargaPagos} onRetryPagos={refetchPagos} navigate={navigate} onSync={startSync} abrirDetalle={abrirDetalle} abrirCompromiso={abrirCompromiso} irACompromisos={irACompromisos} irAPagos={irAPagos} />}
         {screen === "buscar"           && <Buscar            cartera={cartera} navigate={navigate} onSync={startSync} abrirCompromiso={abrirCompromiso} filtroSituacionInicial={compromisoFiltroInicial as SituacionFiltro} />}
         {screen === "compromiso_nuevo" && <CompromisoNuevo   idCredito={detalleIdCredito} navigate={navigate} refetchCartera={refetchCartera} />}
-        {screen === "compromiso"       && <CompromisoDetalle navigate={navigate} tipo={detalleTipo} idCredito={detalleIdCredito} solcob={detalleSolcob} />}
-        {screen === "pagos"            && <PagosEnviados     navigate={navigate} onSync={startSync} abrirDetalle={abrirDetalle} filtroEstadoInicial={pagoFiltroInicial as EstadoFiltro} />}
-        {screen === "comprobante"      && <Comprobante       navigate={navigate} idCredito={detalleIdCredito} />}
+        {screen === "compromiso"       && <CompromisoDetalle navigate={navigate} idCredito={detalleIdCredito} />}
+        {screen === "pagos"            && <PagosEnviados     pagos={pagosEnviados} estadoCargaPagos={estadoCargaPagos} onRetryPagos={refetchPagos} navigate={navigate} onSync={startSync} abrirDetalle={abrirDetalle} filtroEstadoInicial={pagoFiltroInicial as EstadoFiltro} />}
+        {screen === "comprobante"      && <Comprobante       navigate={navigate} idCredito={detalleIdCredito} onAnalisis={setAnalisisPago} />}
         {screen === "matching"         && <Matching          navigate={navigate} />}
-        {screen === "cuadratura"       && <Cuadratura        navigate={navigate} abrirDetalle={abrirDetalle} idCredito={detalleIdCredito} />}
+        {screen === "cuadratura"       && <Cuadratura        navigate={navigate} abrirDetalle={abrirDetalle} idCredito={detalleIdCredito} analisis={analisisPago} onEnviado={alEnviarPago} />}
         {screen === "excepciones"      && <Excepciones />}
         {screen === "auditoria"        && <Auditoria />}
         {screen === "sincronizacion"   && <Sincronizacion    historial={historialSincronizaciones} onSync={startSync} />}

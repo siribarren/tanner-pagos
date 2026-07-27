@@ -33,7 +33,7 @@ class CRMFilaManager(models.Manager):
         canal_contacto: str,
         monto: int,
         cuota_ids: Iterable[int],
-        vencidas_ids: set[int],
+        todas_ids: set[int],
     ) -> "CRMFila":
         from core.models import Cuota
 
@@ -42,7 +42,8 @@ class CRMFilaManager(models.Manager):
             fila.fecha_compromiso = fecha_compromiso
             fila.canal_contacto = canal_contacto
             fila.monto = monto
-            fila.pago = TipoPago.TOTAL if set(cuota_ids) == vencidas_ids else TipoPago.PARCIAL
+            # TOTAL solo si el compromiso cubre todas las cuotas del credito; cualquier tramo es PARCIAL.
+            fila.pago = TipoPago.TOTAL if set(cuota_ids) == todas_ids else TipoPago.PARCIAL
             fila.situacion = Situacion.PENDIENTE
             fila.estado = EstadoCRM.COMPROMETIDO
             fila.save(update_fields=["fecha_compromiso", "canal_contacto", "monto", "pago", "situacion", "estado"])

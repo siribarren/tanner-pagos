@@ -1,5 +1,5 @@
 from django.db import models
-from .choices import CanalContacto, EstadoCRM, TipoPago, Situacion, CuotaEstado
+from .choices import CanalContacto, EstadoCRM, TipoPago, Situacion, CuotaEstado, PagoEstado, TipoPagoFlokzu
 from .managers import CRMFilaManager, CuotaManager, PagoManager, RequestCacheManager
 # Create your models here.
 
@@ -101,6 +101,13 @@ class Pago(models.Model):
     cuenta_destino = models.CharField(max_length=50, null=True)
     cuentas_distintas = models.BooleanField(default=False)
     cantidad_transferencias = models.IntegerField(default=0)
+    # Un pago se guarda cuando el ejecutivo confirma el envio, y solo cuenta como verdad contable
+    # cuando el MANDANTE lo aprueba en Flokzu.
+    estado = models.CharField(max_length=20, choices=PagoEstado.choices, default=PagoEstado.PENDIENTE)
+    # Los tres campos del formulario Flokzu que el ejecutivo puede corregir y no se derivan de otra columna.
+    tipo_pago = models.CharField(max_length=20, choices=TipoPagoFlokzu.choices, null=True)
+    monto_ceco = models.IntegerField(default=0)
+    monto_saf = models.IntegerField(default=0)
     creado_en = models.DateTimeField(auto_now_add=True)
 
     objects = PagoManager()

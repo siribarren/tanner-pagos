@@ -15,7 +15,7 @@ export type CarteraItem = {
   fechaCompromiso?: string;
   fechaPago?: string;
   pago?: "TOTAL" | "PARCIAL";
-  situacion?: "SITUACION_PENDIENTE" | "SITUACION_VALIDADO";
+  situacion?: "SITUACION_PENDIENTE" | "SITUACION_ENVIADO" | "SITUACION_VALIDADO";
 };
 
 export type CarteraDetalle = DetailResponse;
@@ -25,7 +25,8 @@ const MESES = [
   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
 ];
 
-function formatDate(value: string | null): string | undefined {
+// "2026-07-09" -> "09-Julio". Lo comparten la cartera y las tablas de pagos enviados.
+export function formatDate(value: string | null): string | undefined {
   if (!value) return undefined;
   const [year, month, day] = value.split("-").map(Number);
   if (!year || !month || !day) return value;
@@ -89,11 +90,18 @@ export type CrearCompromisoInput = {
   cuota_ids: number[];
 };
 
+// DRF responde los errores de validacion como {campo: ["mensaje", ...]}: se propaga el primero
+// para que la pantalla muestre la regla que se rompio y no un texto generico que no corresponde.
+function mensajeApi(error: unknown, porDefecto: string): string {
+  const valores = Object.values((error ?? {}) as Record<string, unknown>).flat();
+  return valores.find((v): v is string => typeof v === "string") ?? porDefecto;
+}
+
 export async function crearCompromiso(creditoId: string, input: CrearCompromisoInput): Promise<CrmFila> {
   const { data, error } = await apiClient.POST("/api/cartera/{id}/compromiso/", {
     params: { path: { id: Number(creditoId) } },
     body: input,
   });
-  if (error || !data) throw new Error("No fue posible crear el compromiso");
+  if (error || !data) throw new Error(mensajeApi(error, "No fue posible crear el compromiso"));
   return data;
 }
