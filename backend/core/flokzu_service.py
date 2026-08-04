@@ -8,6 +8,7 @@ si hace falta y la tipee alla. Los campos siguen el formulario de "Recupero de c
 import re
 
 from core.choices import TipoPagoFlokzu
+from core.rut import normalizar_rut
 
 TIPO_SOLICITUD = "Recupero de castigo"
 EMPRESA = "TSF"
@@ -72,7 +73,7 @@ class FlokzuService:
             "correos_adicionales": CORREOS_ADICIONALES,
             "id_credito": credito.id,
             "forma_pago": FORMA_PAGO,
-            "rut_transfiere": credito.rut_deudor,
+            "rut_transfiere": normalizar_rut(pago_response.rut_transfiere),
             "monto_pago": monto_total,
             "cuenta": FlokzuService.cuenta_flokzu(pago_response.cuenta_destino),
             "fecha_pago": pago_response.fecha_pago,

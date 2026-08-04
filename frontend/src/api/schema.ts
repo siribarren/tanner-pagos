@@ -288,6 +288,7 @@ export interface components {
             /** Format: date */
             fecha_pago?: string | null;
             cuenta_destino?: string | null;
+            rut_transfiere?: string | null;
             cuentas_distintas?: boolean;
             /** Format: int64 */
             cantidad_transferencias?: number;
@@ -326,6 +327,7 @@ export interface components {
             /** Format: date */
             fecha_pago: string;
             cuenta_destino?: string | null;
+            rut_transfiere: string;
             /** @default false */
             cuentas_distintas: boolean;
             transferencias: components["schemas"]["TransferenciaAnalisis"][];
@@ -395,7 +397,7 @@ export interface components {
             correos_adicionales: string;
             id_credito: number;
             forma_pago: string;
-            rut_transfiere: string;
+            rut_transfiere: string | null;
             monto_pago: number;
             cuenta: string | null;
             /** Format: date */

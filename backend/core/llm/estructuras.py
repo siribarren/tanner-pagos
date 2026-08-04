@@ -22,6 +22,7 @@ class PagoResponse(BaseModel):
     fecha_pago: date
     cuenta_destino: str | None
     cuentas_distintas: bool
+    rut_transfiere: str | None = None
     transferencias: list[TransferenciaResponse]
 
 class CantidadTransferenciasResponse(BaseModel):

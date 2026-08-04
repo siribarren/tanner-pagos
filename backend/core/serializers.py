@@ -5,6 +5,7 @@ from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field
 
 from .choices import CanalContacto, EstadoCRM, Situacion, TipoPago, TipoPagoFlokzu
+from .rut import normalizar_rut
 from .models import CRMFila, Credito, Cuota, Pago, PagoCuota, PagoTransferencia
 from .pdf_service import EXTENSIONES_COMPROBANTE, PdfService
 
@@ -220,6 +221,7 @@ class PagoSerializer(serializers.ModelSerializer):
             "monto_comprometido",
             "fecha_pago",
             "cuenta_destino",
+            "rut_transfiere",
             "cuentas_distintas",
             "cantidad_transferencias",
             "estado",
@@ -288,7 +290,7 @@ class SolicitudFlokzuSerializer(serializers.Serializer):
     correos_adicionales = serializers.CharField()
     id_credito = serializers.IntegerField()
     forma_pago = serializers.CharField()
-    rut_transfiere = serializers.CharField()
+    rut_transfiere = serializers.CharField(allow_null=True)
     monto_pago = serializers.IntegerField()
     cuenta = serializers.CharField(allow_null=True)
     fecha_pago = serializers.DateField(allow_null=True)
@@ -321,11 +323,18 @@ class PagoConfirmarSerializer(serializers.Serializer):
     pdf_path = serializers.CharField()
     fecha_pago = serializers.DateField()
     cuenta_destino = serializers.CharField(allow_null=True, required=False, allow_blank=True)
+    rut_transfiere = serializers.CharField(allow_null=False, allow_blank=False)
     cuentas_distintas = serializers.BooleanField(default=False)
     transferencias = TransferenciaAnalisisSerializer(many=True, allow_empty=False)
     tipo_pago = serializers.ChoiceField(choices=TipoPagoFlokzu.choices)
     monto_ceco = serializers.IntegerField(min_value=0, default=0)
     monto_saf = serializers.IntegerField(min_value=0, default=0)
+
+    def validate_rut_transfiere(self, value):
+        rut = normalizar_rut(value)
+        if rut is None:
+            raise serializers.ValidationError("Ingresa un RUT valido con formato 12.345.678-9.")
+        return rut
 
     def validate_pdf_path(self, value):
         try:

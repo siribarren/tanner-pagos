@@ -7,6 +7,7 @@ from django.db import models, transaction
 from django.db.models import Sum
 
 from core.choices import EstadoCRM, Situacion
+from core.rut import normalizar_rut
 
 if TYPE_CHECKING:
     from core.llm.estructuras import PagoResponse
@@ -59,6 +60,7 @@ class PagoManager(models.Manager):
                 monto_total=monto_total,
                 fecha_pago=pago_response.fecha_pago,
                 cuenta_destino=pago_response.cuenta_destino,
+                rut_transfiere=normalizar_rut(pago_response.rut_transfiere),
                 cuentas_distintas=pago_response.cuentas_distintas,
                 cantidad_transferencias=len(transferencias),
                 tipo_pago=tipo_pago,

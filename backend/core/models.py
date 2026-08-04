@@ -99,6 +99,7 @@ class Pago(models.Model):
     monto_total = models.IntegerField()
     fecha_pago = models.DateField(null=True)
     cuenta_destino = models.CharField(max_length=50, null=True)
+    rut_transfiere = models.CharField(max_length=12, null=True)
     cuentas_distintas = models.BooleanField(default=False)
     cantidad_transferencias = models.IntegerField(default=0)
     # Un pago se guarda cuando el ejecutivo confirma el envio, y solo cuenta como verdad contable

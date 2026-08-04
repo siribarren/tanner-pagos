@@ -150,6 +150,7 @@ class CarteraViewSet(viewsets.ReadOnlyModelViewSet):
                     fecha_pago=datos["fecha_pago"],
                     cuenta_destino=datos.get("cuenta_destino") or None,
                     cuentas_distintas=datos["cuentas_distintas"],
+                    rut_transfiere=datos["rut_transfiere"],
                     transferencias=transferencias,
                 ),
                 tipo_pago=datos["tipo_pago"],

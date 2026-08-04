@@ -16,6 +16,20 @@ import { DatePicker } from "../DatePicker";
 type EnvioModal = "cerrado" | "revisar" | "enviando" | "exito" | "error";
 
 const HOY = new Date();
+const RUT_FORMATO = /^(?:\d\.\d{3}\.\d{3}|\d{2}\.\d{3}\.\d{3})-[0-9K]$/;
+
+function formatearRut(valor: string): string {
+  const limpio = valor.toUpperCase().replace(/[^0-9K]/g, "").slice(0, 9);
+  if (limpio.length <= 1) return limpio;
+
+  const cuerpo = limpio.slice(0, -1);
+  const verificador = limpio.slice(-1);
+  if (!/^\d+$/.test(cuerpo)) return limpio;
+
+  const cuerpoLimitado = cuerpo.slice(0, 8);
+  const conPuntos = cuerpoLimitado.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return `${conPuntos}-${verificador}`;
+}
 
 function formatFecha(iso: string | null) {
   if (!iso) return "—";
@@ -113,6 +127,7 @@ export function Cuadratura({ navigate, abrirDetalle, idCredito, analisis, onEnvi
 
   const { cuadratura, flokzu, imputaciones } = analisis;
   const observados = cuadratura.checks.filter((check) => check.tono !== "ok");
+  const rutValido = Boolean(form?.rut_transfiere && RUT_FORMATO.test(form.rut_transfiere));
   const sumaCuotas = imputaciones.reduce((total, i) => total + i.cuota_monto, 0);
   const sumaImputada = imputaciones.reduce((total, i) => total + i.monto_imputado, 0);
   const sumaSaldo = imputaciones.reduce((total, i) => total + i.saldo, 0);
@@ -124,13 +139,14 @@ export function Cuadratura({ navigate, abrirDetalle, idCredito, analisis, onEnvi
   };
 
   const enviar = async () => {
-    if (!form?.fecha_pago) return;
+    if (!form?.fecha_pago || !rutValido) return;
     setModal("enviando");
     try {
       await confirmarPago(idCredito, {
         pdf_path: analisis.pdf_path,
         fecha_pago: form.fecha_pago,
         cuenta_destino: form.cuenta,
+        rut_transfiere: form.rut_transfiere,
         cuentas_distintas: analisis.cuentas_distintas,
         transferencias: analisis.transferencias,
         tipo_pago: form.tipo_pago,
@@ -151,7 +167,7 @@ export function Cuadratura({ navigate, abrirDetalle, idCredito, analisis, onEnvi
         <h1 style={{ margin: 0, fontSize: "31px", fontWeight: 800, letterSpacing: "-0.05em", color: C.navy, lineHeight: 1.08 }}>
           Cuadratura {idCredito}
         </h1>
-        <div style={{ marginTop: "6px", fontSize: "13px", color: C.muted, fontFamily: C.mono }}>RUT {flokzu.rut_transfiere}</div>
+        <div style={{ marginTop: "6px", fontSize: "13px", color: C.muted, fontFamily: C.mono }}>RUT {flokzu.rut_transfiere ?? "No identificado"}</div>
         <p style={{ margin: "6px 0 0", fontSize: "14px", color: C.muted, maxWidth: "760px", lineHeight: 1.45 }}>
           Previsualización de imputación antes de aplicar
         </p>
@@ -313,7 +329,21 @@ export function Cuadratura({ navigate, abrirDetalle, idCredito, analisis, onEnvi
           </SeccionFormulario>
 
           <SeccionFormulario titulo="Datos del pago">
-            <Campo label="Rut de quien transfiere"><ValorFijo>{form.rut_transfiere}</ValorFijo></Campo>
+            <Campo label="Rut de quien transfiere">
+              <input
+                type="text"
+                inputMode="text"
+                value={form.rut_transfiere ?? ""}
+                placeholder="12.345.678-9"
+                onChange={(e) => setForm({ ...form, rut_transfiere: formatearRut(e.target.value) || null })}
+                style={{ ...ESTILO_INPUT, borderColor: rutValido ? C.border : C.amber }}
+              />
+              <div style={{ marginTop: "5px", fontSize: "11px", lineHeight: 1.35, color: rutValido ? C.muted : C.amber }}>
+                {rutValido
+                  ? "Detectado desde el comprobante; puedes corregirlo."
+                  : "No se detectó un RUT válido. Ingrésalo manualmente."}
+              </div>
+            </Campo>
             <Campo label="Monto del pago"><ValorFijo>{clp(form.monto_pago)}</ValorFijo></Campo>
             <Campo label="Cantidad de movimientos"><ValorFijo>{form.cantidad_movimientos}</ValorFijo></Campo>
             <Campo label="Cuenta">
@@ -408,10 +438,15 @@ export function Cuadratura({ navigate, abrirDetalle, idCredito, analisis, onEnvi
               Falta la fecha del pago: Flokzu no acepta la solicitud sin ella.
             </div>
           )}
+          {!rutValido && (
+            <div style={{ marginTop: "14px", fontSize: "12px", fontWeight: 700, color: C.red }}>
+              Debes ingresar el RUT de quien transfiere con formato 12.345.678-9.
+            </div>
+          )}
 
           <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "22px" }}>
             <Btn label="Cancelar" variant="outline" onClick={() => setModal("cerrado")} />
-            <Btn label="Enviar" onClick={enviar} disabled={!form.fecha_pago} />
+            <Btn label="Enviar" onClick={enviar} disabled={!form.fecha_pago || !rutValido} />
           </div>
         </Modal>
       )}

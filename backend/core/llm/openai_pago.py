@@ -68,6 +68,10 @@ class OpenAiPagoService:
             - La fecha de la transferencia aparece cerca de "Fecha y hora"/"Fecha", en formatos como
               "15 jun. 2026 12:31 hrs" o "15/06/2026". NO la confundas con el "Nº de operación",
               el "RUT"/"C.I.", el "TELEFONO", ni con números de cuenta.
+            - rut_transfiere = el RUT/C.I. de la persona que ordena o realiza la transferencia,
+              cuando aparece en la seccion de origen/pagador (por ejemplo "De", "Ordenante",
+              "Remitente", "Titular" o "Cuenta de origen"). No uses el RUT del destinatario,
+              beneficiario ni un RUT del credito. Si no aparece, devuelve null.
             - Para determinar la cuenta destino de CADA comprobante:
               1. Ubica la seccion del DESTINATARIO/BENEFICIARIO. NUNCA uses la seccion de origen
                  ("Cuenta de origen", "Origen", "Cuenta cargada", "Desde"): esa es la cuenta del pagador.
@@ -92,6 +96,10 @@ class OpenAiPagoService:
                   anterior, null si ese comprobante no la declara
                 * banco: la "Institución financiera" del destinatario, null si no aparece
                 * n_operacion: el "Nº de operación" de ESE comprobante, null si no aparece
+            - rut_transfiere: el RUT/C.I. de quien transfiere, como solo 7 u 8 digitos de cuerpo,
+              con puntos, guion y digito verificador (por ejemplo "12.345.678-9"). Si no aparece
+              en los comprobantes, devuelve null. Si hay varios comprobantes y no tienen un RUT
+              comun inequivoco, devuelve null. Nunca lo infieras desde el credito.
             - pago_total: La suma en pesos de todos los "Monto transferido" encontrados
             - fecha_pago: La fecha (formato YYYY-MM-DD) mas reciente entre las fechas de transferencia
               encontradas (ej: si hay transferencias en enero, abril y diciembre del mismo año, usar la de diciembre)

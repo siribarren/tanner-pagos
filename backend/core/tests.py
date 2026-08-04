@@ -337,12 +337,13 @@ def pdf_subido(nombre: str, paginas: int = 1) -> SimpleUploadedFile:
     return SimpleUploadedFile(nombre, buffer.getvalue(), content_type="application/pdf")
 
 
-def respuesta_pago(montos: list[int]) -> PagoResponse:
+def respuesta_pago(montos: list[int], rut_transfiere: str | None = "12.345.678-9") -> PagoResponse:
     return PagoResponse(
         pago_total=sum(montos),
         fecha_pago=date(2026, 7, 10),
         cuenta_destino="12345678",
         cuentas_distintas=False,
+        rut_transfiere=rut_transfiere,
         transferencias=[
             TransferenciaResponse(
                 orden=indice + 1,
@@ -457,7 +458,7 @@ class PagoTests(TestCase):
 
         self.assertEqual(Pago.objects.count(), 0)
 
-    def analizar(self, montos: list[int], credito=None):
+    def analizar(self, montos: list[int], credito=None, rut_transfiere: str | None = "12.345.678-9"):
         """POST al endpoint de analisis con DocumentAI y OpenAI mockeados; deja los mocks en self.mocks."""
         with (
             patch("core.pago_service.DocumentAIService") as docai,
@@ -468,7 +469,7 @@ class PagoTests(TestCase):
             cantidad_service.return_value.obtener_cantidad_pagos.return_value = CantidadTransferenciasResponse(
                 cantidad=len(montos), evidencia="montos transferidos"
             )
-            detalle_service.return_value.obtener_pago.return_value = respuesta_pago(montos)
+            detalle_service.return_value.obtener_pago.return_value = respuesta_pago(montos, rut_transfiere)
             self.mocks = (docai, cantidad_service, detalle_service)
 
             return self.client.post(
@@ -484,6 +485,7 @@ class PagoTests(TestCase):
             "pdf_path": analisis["pdf_path"],
             "fecha_pago": analisis["fecha_pago"],
             "cuenta_destino": analisis["cuenta_destino"],
+            "rut_transfiere": analisis["flokzu"]["rut_transfiere"],
             "cuentas_distintas": analisis["cuentas_distintas"],
             "transferencias": analisis["transferencias"],
             "tipo_pago": analisis["flokzu"]["tipo_pago"],
@@ -526,7 +528,7 @@ class PagoTests(TestCase):
         self.assertEqual(flokzu["empresa"], "TSF")
         self.assertEqual(flokzu["empresa_cobranza"], "PHOENIX")
         self.assertEqual(flokzu["id_credito"], self.credito.id)
-        self.assertEqual(flokzu["rut_transfiere"], self.credito.rut_deudor)
+        self.assertEqual(flokzu["rut_transfiere"], "12.345.678-9")
         self.assertEqual(flokzu["monto_pago"], 5000000)
         self.assertEqual(flokzu["cantidad_movimientos"], 2)
         # El pago salda las dos cuotas vencidas del crédito.
@@ -534,6 +536,17 @@ class PagoTests(TestCase):
         self.assertEqual((flokzu["monto_ceco"], flokzu["monto_saf"]), (0, 0))
         # La cuenta del comprobante no está en el listado de Flokzu: queda vacía para que el ejecutivo elija.
         self.assertIsNone(flokzu["cuenta"])
+
+    def test_analizar_normaliza_el_rut_del_comprobante_y_no_usa_el_del_credito(self):
+        flokzu = self.analizar([5000000], rut_transfiere="123456789").json()["flokzu"]
+
+        self.assertEqual(flokzu["rut_transfiere"], "12.345.678-9")
+        self.assertNotEqual(flokzu["rut_transfiere"], self.credito.rut_deudor)
+
+    def test_analizar_devuelve_null_si_el_comprobante_no_trae_rut(self):
+        flokzu = self.analizar([5000000], rut_transfiere=None).json()["flokzu"]
+
+        self.assertIsNone(flokzu["rut_transfiere"])
 
     def test_flokzu_marca_saf_si_paga_de_mas_y_ceco_si_paga_de_menos(self):
         de_mas = self.analizar([5200000]).json()["flokzu"]
@@ -559,6 +572,7 @@ class PagoTests(TestCase):
         payload = response.json()
         self.assertEqual(payload["estado"], PagoEstado.PENDIENTE)
         self.assertEqual(payload["monto_total"], 5000000)
+        self.assertEqual(payload["rut_transfiere"], "12.345.678-9")
         self.assertEqual(payload["tipo_pago"], TipoPagoFlokzu.PAGO_TOTAL)
 
         pago = Pago.objects.get(id=payload["id"])
@@ -573,6 +587,29 @@ class PagoTests(TestCase):
         )
         self.fila.refresh_from_db()
         self.assertEqual(self.fila.fecha_pago, date(2026, 7, 10))
+
+    def test_confirmar_normaliza_el_rut_digitado_manualmente_y_lo_persiste(self):
+        analisis = self.analizar([5000000]).json()
+        cuerpo = self.cuerpo_confirmacion(analisis) | {"rut_transfiere": "123456789"}
+
+        response = self.client.post(
+            f"/api/cartera/{self.credito.id}/pago/", cuerpo, format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json()["rut_transfiere"], "12.345.678-9")
+        self.assertEqual(Pago.objects.get().rut_transfiere, "12.345.678-9")
+
+    def test_confirmar_exige_rut_si_ocr_no_lo_encontro(self):
+        analisis = self.analizar([5000000], rut_transfiere=None).json()
+        cuerpo = self.cuerpo_confirmacion(analisis)
+
+        response = self.client.post(
+            f"/api/cartera/{self.credito.id}/pago/", cuerpo, format="json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("rut_transfiere", response.json())
 
     def test_confirmar_deja_el_compromiso_enviado_al_mandante(self):
         analisis = self.analizar([5000000]).json()
